@@ -1,0 +1,32 @@
+seed: 42
+
+data:
+  raw_dir: data/raw/hackathonlicence
+  dictionary: data/raw/t_dict_municipal_districts.xlsx
+  min_months: 24
+
+features:
+  categories: [Продовольствие, Здоровье, Маркетплейсы, Общественное питание, Транспорт]
+  smoothing_window: 3
+  share_floor: 0.002
+  use_market_access: true
+  weights:
+    structure: 1.0
+    level: 1.0
+    market_access: 0.5
+
+graph:
+  k: 15
+  rules: [cosine, residual_corr, lagged_corr, road, hybrid]
+  lag_max: 2
+  corr_window: 12
+  road_scale_km: 300
+  hybrid_alpha: 0.7
+
+clustering:
+  k_range: [4, 12]
+  methods: [kmeans, gmm, ward, spectral, leiden, attributed_spectral]
+  leiden_resolution: 1.0
+
+temporal:
+  match_threshold: 0.3

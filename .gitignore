@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+outputs/
+.DS_Store
+work/
+.claude/
+CLAUDE.md
+site/data/
+deploy.sh
