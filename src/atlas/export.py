@@ -8,9 +8,16 @@ import yaml
 from .data import TOTAL, load_consumption, load_dictionary, load_market_access, load_road_distances
 from .features import OTHER, build_snapshots
 from .graphs import build_graph, category_residuals, road_similarity
+from .icvi import isolability_unifiability, modularity
 from .typology import fit_typology, twins
 
 N_TWINS = 6
+MO_KINDS = {
+    "городской округ": "го",
+    "муниципальный район": "мр",
+    "муниципальный округ": "мо",
+    "внутригородская территория города федерального значения": "вт",
+}
 N_NEIGHBOURS = 8
 
 
@@ -57,6 +64,35 @@ def _geometry(cfg, g, ids_with_data):
     return topo.to_json()
 
 
+def economic_space(profile, seed):
+    from sklearn.manifold import TSNE
+
+    xy = TSNE(2, perplexity=40, init="pca", random_state=seed).fit_transform(profile)
+    xy -= xy.min(0)
+    return xy / xy.max()
+
+
+def graph_stats(G, labels, regions, dist):
+    from scipy.sparse.csgraph import connected_components
+
+    rows, cols = G.nonzero()
+    upper = rows < cols
+    i, j = rows[upper], cols[upper]
+    km = dist[i, j]
+    avi, avu = isolability_unifiability(G, labels)
+    return {
+        "edges": int(upper.sum()),
+        "degree": round(float(2 * upper.sum() / G.shape[0]), 1),
+        "components": int(connected_components(G, directed=False)[0]),
+        "same_region": round(float((regions[i] == regions[j]).mean()), 3),
+        "cross_type": round(float((labels[i] != labels[j]).mean()), 3),
+        "median_km": round(float(np.median(km[np.isfinite(km)])), 0),
+        "MQ": round(modularity(G, labels), 3),
+        "AVI": round(avi, 3),
+        "AVU": round(avu, 3),
+    }
+
+
 def export_site(cfg, out_dir, with_geometry=True):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -79,7 +115,10 @@ def export_site(cfg, out_dir, with_geometry=True):
     dist = load_road_distances(cfg, ids)
     road_S = road_similarity(dist, cfg["graph"]["road_scale_km"])
     R = category_residuals(wide, ids, cfg["features"]["categories"])
-    A = build_graph("hybrid", snaps, len(snaps.months) - 1, cfg, R, road_S).tocsr()
+    last = len(snaps.months) - 1
+    graphs = {rule: build_graph(rule, snaps, last, cfg, R, road_S).tocsr() for rule in cfg["graph"]["rules"]}
+    A = graphs["hybrid"]
+    layout = economic_space(ty.profile, cfg["seed"])
 
     cats = cfg["features"]["categories"] + [OTHER]
     shares = snaps.raw[[f"share:{c}" for c in cats]]
@@ -97,8 +136,7 @@ def export_site(cfg, out_dir, with_geometry=True):
             {
                 "id": int(tid),
                 "n": _display_name(r),
-                "f": r["full_name"],
-                "k": r["mo_type"],
+                "k": MO_KINDS.get(r["mo_type"], ""),
                 "r": r["region_name"],
                 "rc": int(r["region_code"]),
                 "c": r["center"] if isinstance(r["center"], str) else "",
@@ -112,6 +150,7 @@ def export_site(cfg, out_dir, with_geometry=True):
                 "nb": [int(ids[j]) for j in nb],
                 "lat": round(float(r["lat"]), 4),
                 "lon": round(float(r["lon"]), 4),
+                "xy": [round(float(v), 4) for v in layout[i]],
             }
         )
 
@@ -134,11 +173,6 @@ def export_site(cfg, out_dir, with_geometry=True):
             }
         )
 
-    transitions = []
-    for a, b in zip(range(len(snaps.months) - 1), range(1, len(snaps.months))):
-        m = pd.crosstab(ty.monthly[a], ty.monthly[b]).reindex(index=range(k), columns=range(k), fill_value=0)
-        transitions.append(m.to_numpy().tolist())
-
     meta = {
         "months": all_months,
         "snapshot_months": snaps.months,
@@ -146,16 +180,18 @@ def export_site(cfg, out_dir, with_geometry=True):
         "n_mo": len(ids),
         "types": types,
         "national": national,
-        "transitions": transitions,
-        "graph": {"rule": "hybrid", "k": cfg["graph"]["k"], "edges": int(A.nnz // 2)},
+        "graph": {"k": cfg["graph"]["k"], "default": "hybrid", "rules": {
+            rule: graph_stats(G, ty.static, info["region_code"].to_numpy(), dist) for rule, G in graphs.items()
+        }},
     }
     json.dump(meta, open(out / "meta.json", "w", encoding="utf-8"), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
     json.dump(records, open(out / "mo.json", "w", encoding="utf-8"), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
 
-    rows, cols = A.nonzero()
-    upper = rows < cols
-    edges = np.stack([rows[upper], cols[upper], np.round(A.data[upper] * 1000)], 1).astype(int).tolist()
-    json.dump(edges, open(out / "edges.json", "w"), separators=(",", ":"))
+    for rule, G in graphs.items():
+        rows, cols = G.nonzero()
+        upper = rows < cols
+        edges = np.stack([rows[upper], cols[upper]], 1).astype(int).ravel().tolist()
+        json.dump(edges, open(out / f"edges-{rule}.json", "w"), separators=(",", ":"))
 
     if with_geometry:
-        (out / "mo.topojson").write_text(_geometry(cfg, polys, set(int(i) for i in ids)))
+        (out / "mo.topo.json").write_text(_geometry(cfg, polys, set(int(i) for i in ids)))
