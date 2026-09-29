@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Атлас локальных экономик</title>
+<meta name="description" content="Типы экономик российских муниципалитетов по структуре потребительских трат жителей, 2023–2024">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/atlas.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div>
+    <h1>Атлас локальных экономик</h1>
+    <p class="lede">Две тысячи муниципалитетов России, сгруппированные по тому, на что тратят деньги их жители. Каждый месяц 2023–2024 годов — новый срез: видно, какие территории держатся своего типа, а какие постепенно переходят в другой.</p>
+  </div>
+  <div class="imprint" id="imprint"></div>
+</header>
+
+<nav class="sheets" id="nav">
+  <a href="#map"><span class="n">1</span>Карта типов</a>
+  <a href="#types"><span class="n">2</span>Портреты типов</a>
+  <a href="#drift"><span class="n">3</span>Переходы</a>
+  <a href="#network"><span class="n">4</span>Сеть близости</a>
+  <a href="#method"><span class="n">5</span>Как это устроено</a>
+</nav>
+
+<main id="app">
+  <section class="sheet" id="map">
+    <div class="sheet-head">
+      <div class="sheet-no">Лист<b>1</b></div>
+      <div>
+        <h2>Типы локальных экономик</h2>
+        <p>Цвет и штриховка — тип экономики муниципалитета в выбранном месяце. Нажмите на территорию, чтобы открыть её карточку: там объяснение типа, траектория за два года и «двойники» — самые похожие муниципалитеты в других частях страны.</p>
+      </div>
+    </div>
+    <div class="map-tools">
+      <div class="search">
+        <input id="q" type="search" placeholder="Найти муниципалитет или город" autocomplete="off" aria-label="Поиск муниципалитета">
+        <ul id="qres" hidden></ul>
+      </div>
+      <div class="toggle" id="mode">
+        <button data-mode="month" class="on">Тип в месяце</button>
+        <button data-mode="static">Тип за весь период</button>
+      </div>
+      <div class="toggle" id="hatch">
+        <button data-h="1" class="on">Штриховка</button>
+        <button data-h="0">Только цвет</button>
+      </div>
+    </div>
+    <div class="plate">
+      <div>
+        <div class="mapframe"><svg id="mapsvg" role="img" aria-label="Карта типов муниципалитетов"></svg>
+          <div class="zoombar" id="zoombar">
+            <button data-z="ru">Вся Россия</button>
+            <button data-z="eu">Европейская часть</button>
+            <button data-z="mo">Московская агломерация</button>
+            <button data-z="msk">Москва</button>
+            <button data-z="spb">Петербург</button>
+          </div>
+          <div class="zoomhint">Перетаскивание — сдвиг, Ctrl + колесо — масштаб</div>
+        </div>
+        <div class="timescale">
+          <button class="play" id="play" aria-label="Проиграть по месяцам">▶</button>
+          <svg id="timesvg"></svg>
+        </div>
+        <div class="legend">
+          <h3>Условные обозначения</h3>
+          <ol id="legend"></ol>
+          <p class="note">Серой штриховкой отмечены муниципалитеты без оценки расходов: данных по ним недостаточно. Нажмите на тип, чтобы оставить на карте только его.</p>
+        </div>
+      </div>
+      <aside>
+        <div class="card" id="card"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="sheet" id="types">
+    <div class="sheet-head">
+      <div class="sheet-no">Лист<b>2</b></div>
+      <div>
+        <h2>Портреты типов</h2>
+        <p>Роза показывает структуру трат типа: длина лепестка — доля категории относительно медианы по стране, пунктирный круг — средняя по России. Лепесток за кругом — жители этого типа тратят на категорию больше обычного.</p>
+      </div>
+    </div>
+    <div class="portraits" id="portraits"></div>
+  </section>
+
+  <section class="sheet" id="drift">
+    <div class="sheet-head">
+      <div class="sheet-no">Лист<b>3</b></div>
+      <div>
+        <h2>Переходы между типами</h2>
+        <p>Потоки между кварталами: сколько муниципалитетов остались в своём типе, а сколько сменили его. Справа — территории, которые сменили тип и удержались в новом до конца 2024 года.</p>
+      </div>
+    </div>
+    <div class="drift">
+      <div class="panel"><svg id="flowsvg" style="width:100%;display:block"></svg></div>
+      <div class="panel">
+        <h3>Сменили тип</h3>
+        <ul class="movers" id="movers"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="network">
+    <div class="sheet-head">
+      <div class="sheet-no">Лист<b>4</b></div>
+      <div>
+        <h2>Сеть экономической близости</h2>
+        <p>Каждый муниципалитет связан с ближайшими по структуре трат соседями с учётом расстояния по дорогам. Тёмные линии связывают территории одного типа, красные — разных типов: это границы, на которых экономика одного типа переходит в другой.</p>
+      </div>
+    </div>
+    <div class="mapframe"><canvas id="netcanvas" style="width:100%;display:block"></canvas></div>
+  </section>
+
+  <section class="sheet" id="method">
+    <div class="sheet-head">
+      <div class="sheet-no">Лист<b>5</b></div>
+      <div>
+        <h2>Как это устроено</h2>
+        <p>Весь расчёт воспроизводится одной командой из открытого репозитория. Подробности, формулы и сравнение методов — в методологическом отчёте.</p>
+      </div>
+    </div>
+    <div class="method" id="steps"></div>
+  </section>
+</main>
+
+<footer>
+  <div>Данные: Лаборатория СберИндекс — потребительские безналичные расходы на уровне муниципальных образований, индекс доступности рынков, транспортные связи между МО, границы и преобразования МО. Лицензия CC BY-SA 4.0.</div>
+  <div>Производные данные атласа распространяются на тех же условиях. Оценки расходов — модельные, по безналичным операциям; доля наличных расчётов в разных регионах неодинакова.</div>
+</footer>
+
+<div class="tooltip" id="tip"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
