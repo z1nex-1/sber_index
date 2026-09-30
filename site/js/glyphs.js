@@ -35,7 +35,7 @@ export function swatch(type, size = 28, prefix = "sw") {
   return svg.node();
 }
 
-export function rose(shares, reference, categories, { size = 180, color = "#1d1b17", labels = true, compare = null } = {}) {
+export function rose(shares, reference, categories, { size = 180, color = "#1d1b17", labels = true, compare = null, animate = false } = {}) {
   const pad = labels ? 34 : 2;
   const R = size / 2 - pad;
   const ref = R * 0.66;
@@ -51,8 +51,16 @@ export function rose(shares, reference, categories, { size = 180, color = "#1d1b
       .attr("fill", "none").attr("stroke", "#8a8374").attr("stroke-width", 1).attr("stroke-dasharray", "2 2");
   }
 
-  svg.append("g").selectAll("path").data(shares).join("path")
-    .attr("d", (v, i) => petal({ outerRadius: radius(v, reference[i]), startAngle: i * step, endAngle: (i + 1) * step }))
+  const petals = svg.append("g").selectAll("path").data(shares).join("path")
+    .attr("d", (v, i) => petal({ outerRadius: animate ? 0.5 : radius(v, reference[i]), startAngle: i * step, endAngle: (i + 1) * step }));
+  if (animate) {
+    petals.transition().delay((v, i) => 80 + i * 55).duration(650).ease(d3.easeBackOut.overshoot(1.3))
+      .attrTween("d", (v, i) => {
+        const r = d3.interpolate(0.5, radius(v, reference[i]));
+        return (t) => petal({ outerRadius: r(t), startAngle: i * step, endAngle: (i + 1) * step });
+      });
+  }
+  petals
     .attr("fill", color).attr("fill-opacity", 0.85).attr("stroke", "#1d1b17").attr("stroke-width", 0.6)
     .append("title").text((v, i) => `${categories[i]}: ${(v * 100).toFixed(1).replace(".", ",")}% трат (по России ${(reference[i] * 100).toFixed(1).replace(".", ",")}%)`);
 

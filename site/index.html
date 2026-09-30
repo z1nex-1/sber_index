@@ -5,15 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Атлас локальных экономик</title>
 <meta name="description" content="Типы экономик российских муниципалитетов по структуре потребительских трат жителей, 2023–2024">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3eee3">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" href="data/mo.topo.json" as="fetch" crossorigin>
+<link rel="preload" href="data/mo.json" as="fetch" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/atlas.css">
 </head>
-<body>
+<body class="loading">
+
+<div id="loader" aria-live="polite">
+  <svg viewBox="0 0 220 140" width="220" height="140" aria-hidden="true">
+    <rect class="ld-frame" x="2" y="2" width="216" height="136" pathLength="1"></rect>
+    <rect class="ld-inner" x="10" y="10" width="200" height="120" pathLength="1"></rect>
+    <path class="ld-grat" d="M10 50 Q110 30 210 50 M10 90 Q110 70 210 90 M70 10 Q60 70 70 130 M150 10 Q160 70 150 130" pathLength="1"></path>
+  </svg>
+  <div class="ld-title">Атлас локальных экономик</div>
+  <div class="ld-status" id="ldstatus">Готовим карту…</div>
+</div>
 
 <header class="masthead">
   <div>
+    <div class="kicker">Конкурс СберИндекса · направление «Кластеризация»</div>
     <h1>Атлас локальных экономик</h1>
     <p class="lede">Две тысячи муниципалитетов России, сгруппированные по тому, на что тратят деньги их жители. Каждый месяц 2023–2024 годов — новый срез: видно, какие территории держатся своего типа, а какие постепенно переходят в другой.</p>
   </div>
@@ -22,10 +39,12 @@
 
 <nav class="sheets" id="nav">
   <a href="#map"><span class="n">1</span>Карта типов</a>
-  <a href="#types"><span class="n">2</span>Портреты типов</a>
-  <a href="#drift"><span class="n">3</span>Переходы</a>
-  <a href="#network"><span class="n">4</span>Сеть близости</a>
-  <a href="#method"><span class="n">5</span>Как это устроено</a>
+  <a href="#space"><span class="n">2</span>Пространство сходства</a>
+  <a href="#types"><span class="n">3</span>Портреты типов</a>
+  <a href="#drift"><span class="n">4</span>Переходы</a>
+  <a href="#network"><span class="n">5</span>Сеть близости</a>
+  <a href="#method"><span class="n">6</span>Как это устроено</a>
+  <i class="progress" id="progress"></i>
 </nav>
 
 <main id="app">
@@ -40,6 +59,7 @@
     <div class="map-tools">
       <div class="search">
         <input id="q" type="search" placeholder="Найти муниципалитет или город" autocomplete="off" aria-label="Поиск муниципалитета">
+        <kbd>/</kbd>
         <ul id="qres" hidden></ul>
       </div>
       <div class="toggle" id="mode">
@@ -53,7 +73,8 @@
     </div>
     <div class="plate">
       <div>
-        <div class="mapframe"><svg id="mapsvg" role="img" aria-label="Карта типов муниципалитетов"></svg>
+        <div class="mapframe">
+          <svg id="mapsvg" role="img" aria-label="Карта типов муниципалитетов"></svg>
           <div class="zoombar" id="zoombar">
             <button data-z="ru">Вся Россия</button>
             <button data-z="eu">Европейская часть</button>
@@ -61,10 +82,11 @@
             <button data-z="msk">Москва</button>
             <button data-z="spb">Петербург</button>
           </div>
-          <div class="zoomhint">Перетаскивание — сдвиг, Ctrl + колесо — масштаб</div>
+          <div class="chip" id="chip" hidden><span></span><button aria-label="Сбросить подсветку">×</button></div>
+          <div class="zoomhint">Перетаскивание — сдвиг · Ctrl + колесо — масштаб</div>
         </div>
         <div class="timescale">
-          <button class="play" id="play" aria-label="Проиграть по месяцам">▶</button>
+          <button class="play" id="play" aria-label="Проиграть по месяцам"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 2 L13 8 L4 14 Z"/></svg></button>
           <svg id="timesvg"></svg>
         </div>
         <div class="legend">
@@ -79,9 +101,34 @@
     </div>
   </section>
 
-  <section class="sheet" id="types">
+  <section class="sheet" id="space">
     <div class="sheet-head">
       <div class="sheet-no">Лист<b>2</b></div>
+      <div>
+        <h2>Пространство сходства</h2>
+        <p>Та же страна, но муниципалитеты расставлены не по координатам, а по сходству структуры трат: рядом оказываются похожие экономики, даже если между ними тысячи километров. Переключите режим и посмотрите, как география перестраивается в экономику.</p>
+      </div>
+    </div>
+    <div class="space-wrap">
+      <div class="space-stage">
+        <canvas class="space"></canvas>
+        <svg class="space-brush"></svg>
+        <div class="toggle space-mode">
+          <button data-t="0" class="on">География</button>
+          <button data-t="1">Сходство</button>
+        </div>
+      </div>
+      <div class="panel space-panel">
+        <h3>Выделение</h3>
+        <div class="space-sel"></div>
+        <canvas class="space-mini"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="types">
+    <div class="sheet-head">
+      <div class="sheet-no">Лист<b>3</b></div>
       <div>
         <h2>Портреты типов</h2>
         <p>Роза показывает структуру трат типа: длина лепестка — доля категории относительно медианы по стране, пунктирный круг — средняя по России. Лепесток за кругом — жители этого типа тратят на категорию больше обычного.</p>
@@ -92,35 +139,44 @@
 
   <section class="sheet" id="drift">
     <div class="sheet-head">
-      <div class="sheet-no">Лист<b>3</b></div>
+      <div class="sheet-no">Лист<b>4</b></div>
       <div>
         <h2>Переходы между типами</h2>
-        <p>Потоки между кварталами: сколько муниципалитетов остались в своём типе, а сколько сменили его. Справа — территории, которые сменили тип и удержались в новом до конца 2024 года.</p>
+        <p>Потоки между кварталами: сколько муниципалитетов остались в своём типе, а сколько сменили его. Наведите на тип, чтобы выделить его потоки; нажмите на поток — эти муниципалитеты подсветятся на карте.</p>
       </div>
     </div>
     <div class="drift">
       <div class="panel"><svg id="flowsvg" style="width:100%;display:block"></svg></div>
-      <div class="panel">
-        <h3>Сменили тип</h3>
+      <div class="panel movers-panel">
+        <h3 id="movershead">Сменили тип</h3>
+        <select id="moverfilter" aria-label="Фильтр переходов"></select>
         <ul class="movers" id="movers"></ul>
+        <div class="card-actions"><button id="showmovers">Показать список на карте</button></div>
       </div>
     </div>
   </section>
 
   <section class="sheet" id="network">
     <div class="sheet-head">
-      <div class="sheet-no">Лист<b>4</b></div>
+      <div class="sheet-no">Лист<b>5</b></div>
       <div>
         <h2>Сеть экономической близости</h2>
-        <p>Каждый муниципалитет связан с ближайшими по структуре трат соседями с учётом расстояния по дорогам. Тёмные линии связывают территории одного типа, красные — разных типов: это границы, на которых экономика одного типа переходит в другой.</p>
+        <p>Одни и те же муниципалитеты можно связать по-разному, и от правила зависит, какие группы найдутся. Выберите правило в таблице: карта перестроится, а столбцы покажут, как меняется структура сети. Наведите на точку, чтобы увидеть её связи.</p>
       </div>
     </div>
-    <div class="mapframe"><canvas id="netcanvas" style="width:100%;display:block"></canvas></div>
+    <div class="net-table"></div>
+    <p class="net-desc"></p>
+    <div class="mapframe net-stage">
+      <canvas class="net-base"></canvas>
+      <canvas class="net-edges"></canvas>
+      <canvas class="net-hover"></canvas>
+    </div>
+    <p class="note">Чёрные линии связывают территории одного типа, красные — разных. Чем длиннее связь, тем она бледнее. MQ — модулярность разбиения на типы в этой сети, AVI и AVU — средняя изолированность типов и их средняя связанность друг с другом.</p>
   </section>
 
   <section class="sheet" id="method">
     <div class="sheet-head">
-      <div class="sheet-no">Лист<b>5</b></div>
+      <div class="sheet-no">Лист<b>6</b></div>
       <div>
         <h2>Как это устроено</h2>
         <p>Весь расчёт воспроизводится одной командой из открытого репозитория. Подробности, формулы и сравнение методов — в методологическом отчёте.</p>
@@ -135,7 +191,7 @@
   <div>Производные данные атласа распространяются на тех же условиях. Оценки расходов — модельные, по безналичным операциям; доля наличных расчётов в разных регионах неодинакова.</div>
 </footer>
 
-<div class="tooltip" id="tip"></div>
+<div class="tooltip" id="tip"><div class="tip-text"></div><div class="tip-art"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>

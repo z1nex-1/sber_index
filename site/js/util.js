@@ -42,3 +42,16 @@ export const el = (tag, attrs = {}, ...children) => {
   for (const c of children.flat()) if (c !== null && c !== undefined) e.append(c.nodeType ? c : document.createTextNode(c));
   return e;
 };
+
+export const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+export const MO_KINDS = { "го": "городской округ", "мр": "муниципальный район", "мо": "муниципальный округ", "вт": "внутригородская территория" };
+
+export async function loadAll(files, onProgress) {
+  let done = 0;
+  return Promise.all(files.map((f) => d3.json(f).then((v) => { onProgress(++done, files.length); return v; })));
+}
+
+export function scatterIndex(points) {
+  return d3.Delaunay.from(points, (p) => p[0], (p) => p[1]);
+}

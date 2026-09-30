@@ -1,19 +1,25 @@
-import { renderCard } from "./card.js";
+import { renderCard, updateCardMonth } from "./card.js";
 import { createMap, createTimescale } from "./map.js";
-import { renderFlows, renderImprint, renderLegend, renderMovers, renderNetwork, renderPortraits, renderSteps } from "./sheets.js";
+import { createNetwork } from "./network.js";
+import { renderFlows, renderImprint, renderLegend, renderMovers, renderPortraits, renderSteps } from "./sheets.js";
+import { createSpace } from "./space.js";
+import { loadAll, reducedMotion } from "./util.js";
 
 const tipEl = document.getElementById("tip");
+const tipText = tipEl.querySelector(".tip-text");
+const tipArt = tipEl.querySelector(".tip-art");
 const tip = {
-  show(ev, html) {
-    tipEl.innerHTML = html;
-    tipEl.style.opacity = 1;
-    const pad = 14, r = tipEl.getBoundingClientRect();
+  show(ev, html, art = null) {
+    tipText.innerHTML = html;
+    if (art) tipArt.replaceChildren(art); else tipArt.replaceChildren();
+    tipEl.classList.toggle("with-art", !!art);
+    tipEl.classList.add("on");
+    const pad = 16, r = tipEl.getBoundingClientRect();
     const x = ev.clientX + pad + r.width > innerWidth ? ev.clientX - r.width - pad : ev.clientX + pad;
     const y = ev.clientY + pad + r.height > innerHeight ? ev.clientY - r.height - pad : ev.clientY + pad;
-    tipEl.style.left = `${x}px`;
-    tipEl.style.top = `${y}px`;
+    tipEl.style.transform = `translate(${x}px,${y}px)`;
   },
-  hide() { tipEl.style.opacity = 0; },
+  hide() { tipEl.classList.remove("on"); },
 };
 
 // d3-geo reads polygons on the sphere: a ring wound the "wrong" way covers
@@ -26,72 +32,132 @@ function rewind(f) {
   }
 }
 
-const readHash = () => {
-  const m = location.hash.match(/mo=(\d+)/);
-  return m ? +m[1] : null;
-};
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  return { mo: +p.get("mo") || null, m: p.has("m") ? +p.get("m") : null, cmp: +p.get("cmp") || null };
+}
+
+const scrollTo = (id) => document.getElementById(id).scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 
 async function main() {
-  const [meta, records, topo, edges] = await Promise.all(
-    ["meta.json", "mo.json", "mo.topojson", "edges.json"].map((f) => d3.json(`data/${f}`)),
-  );
+  const status = document.getElementById("ldstatus");
+  const [meta, records, topo] = await loadAll(["data/meta.json", "data/mo.json", "data/mo.topo.json"],
+    (done, total) => { status.textContent = `Загружено ${done} из ${total}`; });
+  status.textContent = "Рисуем карту…";
+  await new Promise(requestAnimationFrame);
+
   const geo = topojson.feature(topo, topo.objects.mo);
   geo.features.forEach(rewind);
   const regions = topojson.mesh(topo, topo.objects.mo, (a, b) => a !== b && a.properties.rc !== b.properties.rc);
   const outline = topojson.mesh(topo, topo.objects.mo, (a, b) => a === b);
   const coast = { type: "MultiLineString", coordinates: outline.coordinates.filter((c) => d3.geoLength({ type: "LineString", coordinates: c }) > 0.004) };
   const byId = new Map(records.map((r) => [r.id, r]));
+
+  const h = readHash();
+  const last = meta.snapshot_months.length - 1;
   const state = {
-    month: meta.snapshot_months.length - 1,
+    month: h.m !== null && h.m >= 0 && h.m <= last ? h.m : last,
     mode: "month",
     hatch: true,
     focusType: null,
-    selected: byId.has(readHash()) ? readHash() : null,
+    highlight: null,
+    selected: byId.has(h.mo) ? h.mo : null,
+    compare: byId.has(h.cmp) ? h.cmp : null,
   };
 
   const card = document.getElementById("card");
   const legend = document.getElementById("legend");
+  const chip = document.getElementById("chip");
+  let map, time, space = null;
 
-  const select = (id) => {
-    state.selected = id;
-    history.replaceState(null, "", id ? `#mo=${id}` : location.pathname);
-    map.drawSelection();
-    drawCard();
-    if (id && document.getElementById("map").getBoundingClientRect().top < -200) {
-      document.getElementById("map").scrollIntoView({ behavior: "smooth" });
-    }
+  let hashTimer = null;
+  const writeHash = () => {
+    clearTimeout(hashTimer);
+    hashTimer = setTimeout(() => {
+      const p = new URLSearchParams();
+      if (state.selected) p.set("mo", state.selected);
+      if (state.compare) p.set("cmp", state.compare);
+      if (state.month !== last) p.set("m", state.month);
+      const s = p.toString();
+      history.replaceState(null, "", s ? `#${s}` : location.pathname);
+    }, 150);
   };
-  const setMonth = (i) => { state.month = i; map.paint(); time.draw(); drawCard(); };
-  const focus = (t) => { state.focusType = t; map.paint(); renderLegend(legend, meta, state, focus); };
-  const drawCard = () => renderCard(card, { r: byId.get(state.selected), meta, byId, state, onSelect: select, onMonth: setMonth });
 
-  const map = createMap({ svgEl: document.getElementById("mapsvg"), geo, regions, coast, state, meta, byId, onSelect: select, tip });
-  const time = createTimescale({ svgEl: document.getElementById("timesvg"), meta, state, onChange: setMonth });
+  const app = {
+    state,
+    select(id, { fly = false, scroll = false } = {}) {
+      state.selected = id;
+      if (!id) state.compare = null;
+      map.drawSelection();
+      drawCard();
+      space?.redraw();
+      writeHash();
+      if (scroll) scrollTo("map");
+      if (fly && id) map.flyToMo(state.compare && state.compare !== id ? [id, state.compare] : [id]);
+    },
+    setMonth(i) {
+      const prev = state.month;
+      state.month = i;
+      map.paint({ animate: true });
+      map.pulse(prev);
+      time.draw();
+      updateCardMonth(card, meta, byId, app);
+      writeHash();
+    },
+    setFocus(t, { scroll = false } = {}) {
+      state.focusType = t;
+      if (t !== null) state.highlight = null;
+      map.paint();
+      renderLegend(legend, meta, app);
+      drawChip();
+      if (scroll) scrollTo("map");
+    },
+    setHighlight(ids, label, { month = null, scroll = false } = {}) {
+      state.highlight = ids ? { ids, label } : null;
+      if (ids) state.focusType = null;
+      renderLegend(legend, meta, app);
+      if (month !== null) {
+        if (state.mode !== "month") setMode("month");
+        app.setMonth(month);
+      } else map.paint();
+      drawChip();
+      if (scroll) scrollTo("map");
+    },
+    setCompare(id) {
+      state.compare = id;
+      map.drawSelection();
+      drawCard();
+      writeHash();
+    },
+    peek(id) { map.peek(id); },
+  };
+
+  const drawCard = () => renderCard(card, { meta, byId, app });
+  const drawChip = () => {
+    chip.hidden = !state.highlight;
+    if (state.highlight) chip.querySelector("span").textContent = state.highlight.label;
+  };
+  chip.querySelector("button").addEventListener("click", () => app.setHighlight(null));
+
+  map = createMap({ svgEl: document.getElementById("mapsvg"), geo, regions, coast, meta, byId, app, tip });
+  time = createTimescale({ svgEl: document.getElementById("timesvg"), meta, app });
 
   renderImprint(document.getElementById("imprint"), meta);
-  renderLegend(legend, meta, state, focus);
+  renderLegend(legend, meta, app);
   map.paint();
   map.drawSelection();
-  time.draw();
   drawCard();
+  document.body.classList.remove("loading");
 
-  renderPortraits(document.getElementById("portraits"), meta, records, (t) => {
-    focus(t);
-    document.getElementById("map").scrollIntoView({ behavior: "smooth" });
-  });
-  renderFlows(document.getElementById("flowsvg"), meta, records, tip);
-  renderMovers(document.getElementById("movers"), meta, records, select);
-  renderSteps(document.getElementById("steps"), meta);
-  const drawNet = () => renderNetwork(document.getElementById("netcanvas"), { meta, records, byId, edges, projection: map.projection, geo, regions, coast, H: map.H });
-  drawNet();
-  window.addEventListener("resize", drawNet);
-
+  const setMode = (mode) => {
+    state.mode = mode;
+    document.querySelectorAll("#mode button").forEach((x) => x.classList.toggle("on", x.dataset.mode === mode));
+    map.paint({ animate: true });
+    map.pulse(state.month);
+  };
   document.getElementById("mode").addEventListener("click", (e) => {
     const b = e.target.closest("button");
-    if (!b) return;
-    state.mode = b.dataset.mode;
-    e.currentTarget.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-    map.paint();
+    if (b) setMode(b.dataset.mode);
   });
   document.getElementById("hatch").addEventListener("click", (e) => {
     const b = e.target.closest("button");
@@ -113,37 +179,59 @@ async function main() {
     if (b.dataset.z === "ru") map.reset(); else map.zoomTo(views[b.dataset.z]);
   });
 
-  let timer = null;
   const play = document.getElementById("play");
+  const icon = (paused) => { play.querySelector("path").setAttribute("d", paused ? "M4 2 L13 8 L4 14 Z" : "M3 2 H7 V14 H3 Z M9 2 H13 V14 H9 Z"); };
+  let timer = null;
+  const stop = () => { clearInterval(timer); timer = null; icon(true); };
   play.addEventListener("click", () => {
-    if (timer) { clearInterval(timer); timer = null; play.textContent = "▶"; return; }
-    if (state.mode === "static") document.querySelector('#mode button[data-mode="month"]').click();
-    play.textContent = "❚❚";
-    if (state.month === meta.snapshot_months.length - 1) setMonth(0);
+    if (timer) { stop(); return; }
+    if (state.mode === "static") setMode("month");
+    icon(false);
+    if (state.month === last) app.setMonth(0);
     timer = setInterval(() => {
-      if (state.month >= meta.snapshot_months.length - 1) { clearInterval(timer); timer = null; play.textContent = "▶"; return; }
-      setMonth(state.month + 1);
-    }, 650);
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.target.tagName === "INPUT") return;
-    if (e.key === "ArrowLeft" && state.month > 0) setMonth(state.month - 1);
-    if (e.key === "ArrowRight" && state.month < meta.snapshot_months.length - 1) setMonth(state.month + 1);
-    if (e.key === "Escape") { select(null); focus(null); }
+      if (state.month >= last) { stop(); return; }
+      app.setMonth(state.month + 1);
+    }, 900);
   });
 
-  setupSearch(records, select);
+  document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+    if (e.key === "ArrowLeft" && state.month > 0) { app.setMonth(state.month - 1); e.preventDefault(); }
+    if (e.key === "ArrowRight" && state.month < last) { app.setMonth(state.month + 1); e.preventDefault(); }
+    if (e.key === "/") { e.preventDefault(); document.getElementById("q").focus(); }
+    if (e.key === "Escape") { app.select(null); app.setFocus(null); app.setHighlight(null); }
+  });
+
+  setupSearch(records, app);
   setupNav();
+
+  const lazy = {
+    space: () => { space = createSpace({ root: document.getElementById("space"), meta, records, projection: map.projection, coast, app, tip }); space.show(); },
+    types: () => renderPortraits(document.getElementById("portraits"), meta, records, app),
+    drift: () => { renderFlows(document.getElementById("flowsvg"), meta, records, app, tip); renderMovers(document.getElementById("drift"), meta, records, app); },
+    network: () => createNetwork({ root: document.getElementById("network"), meta, records, byId, projection: map.projection, geo, regions, coast, H: map.H, app, tip }),
+    method: () => renderSteps(document.getElementById("steps"), meta),
+  };
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      en.target.classList.add("in");
+      const fn = lazy[en.target.id];
+      if (fn) { delete lazy[en.target.id]; fn(); }
+      io.unobserve(en.target);
+    }
+  }, { rootMargin: "0px 0px -12% 0px" });
+  document.querySelectorAll("section.sheet").forEach((s) => io.observe(s));
 }
 
-function setupSearch(records, select) {
+function setupSearch(records, app) {
   const input = document.getElementById("q");
   const list = document.getElementById("qres");
   const norm = (s) => s.toLowerCase().replace(/ё/g, "е");
-  const index = records.map((r) => ({ r, key: norm(`${r.n} ${r.f} ${r.c}`) }));
+  const index = records.map((r) => ({ r, key: norm(`${r.n} ${r.c} ${r.r}`) }));
   let items = [], active = 0;
   const close = () => { list.hidden = true; };
-  const choose = (r) => { input.value = r.n; close(); select(r.id); };
+  const choose = (r) => { input.value = r.n; close(); input.blur(); app.select(r.id, { fly: true }); };
   const render = () => {
     list.replaceChildren(...items.map((r, i) => {
       const li = document.createElement("li");
@@ -164,11 +252,11 @@ function setupSearch(records, select) {
     render();
   });
   input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { close(); input.blur(); return; }
     if (list.hidden) return;
     if (e.key === "ArrowDown") { active = Math.min(items.length - 1, active + 1); render(); e.preventDefault(); }
     if (e.key === "ArrowUp") { active = Math.max(0, active - 1); render(); e.preventDefault(); }
     if (e.key === "Enter" && items[active]) choose(items[active]);
-    if (e.key === "Escape") close();
   });
   input.addEventListener("blur", close);
 }
@@ -176,14 +264,23 @@ function setupSearch(records, select) {
 function setupNav() {
   const links = [...document.querySelectorAll("#nav a")];
   const sections = links.map((a) => document.querySelector(a.getAttribute("href")));
+  const progress = document.getElementById("progress");
   const obs = new IntersectionObserver((entries) => {
     for (const en of entries) if (en.isIntersecting) {
       links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
     }
   }, { rootMargin: "-40% 0px -55% 0px" });
   sections.forEach((s) => obs.observe(s));
+  links.forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); scrollTo(a.getAttribute("href").slice(1)); }));
+  const onScroll = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+  };
+  addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
 }
 
 main().catch((err) => {
-  document.getElementById("app").innerHTML = `<p class="loading">Не удалось загрузить данные атласа: ${err.message}</p>`;
+  document.body.classList.remove("loading");
+  document.getElementById("app").innerHTML = `<p class="failed">Не удалось загрузить данные атласа: ${err.message}</p>`;
 });
