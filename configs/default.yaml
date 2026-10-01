@@ -9,10 +9,12 @@ features:
   categories: [Продовольствие, Здоровье, Маркетплейсы, Общественное питание, Транспорт]
   smoothing_window: 3
   share_floor: 0.002
-  use_market_access: true
+  use_rhythm: true
+  use_market_access: false
   weights:
     structure: 1.0
     level: 1.0
+    rhythm: 0.6
     market_access: 0.5
 
 graph:

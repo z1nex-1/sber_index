@@ -23,6 +23,30 @@ def clr(shares):
     return logs - logs.mean(axis=-1, keepdims=True)
 
 
+def rhythm(wide):
+    """Сезонная амплитуда, летний сдвиг и волатильность трат относительно страны.
+
+    r_t = log(трат МО) - медиана log по стране в месяце t; сезонный профиль —
+    среднее r по одноимённым месяцам двух лет, волатильность — СКО остатка
+    после вычитания профиля и линейного тренда.
+    """
+    logs = np.log(wide[TOTAL])
+    r = (logs - logs.groupby(level=1).transform("median")).unstack()
+    r = r.sub(r.mean(1), axis=0)
+    cal = np.array([int(m[5:]) for m in r.columns])
+    profile = r.T.groupby(cal).mean().T
+    t = np.arange(r.shape[1]) - (r.shape[1] - 1) / 2
+    slope = (r * t).sum(1) / (t**2).sum()
+    rest = r - profile[cal].to_numpy() - np.outer(slope, t)
+    return pd.DataFrame(
+        {
+            "amplitude": profile.std(1),
+            "summer": profile[[6, 7, 8]].mean(1) - profile.mean(1),
+            "volatility": rest.std(1),
+        }
+    )
+
+
 def build_snapshots(wide, market_access, cfg):
     fc = cfg["features"]
     cats = fc["categories"]
@@ -50,6 +74,10 @@ def build_snapshots(wide, market_access, cfg):
     S = shares.to_numpy().reshape(len(ids), len(months), -1).transpose(1, 0, 2)
     L = level.to_numpy().reshape(len(ids), len(months)).T[..., None]
     blocks = [("structure", clr(S), [f"clr:{c}" for c in share_names]), ("level", L, ["level"])]
+
+    if fc.get("use_rhythm", True):
+        rh = rhythm(wide).loc[ids]
+        blocks.append(("rhythm", np.broadcast_to(rh.to_numpy()[None], (len(months), len(ids), rh.shape[1])).copy(), list(rh.columns)))
 
     if fc.get("use_market_access", True):
         ma = np.log1p(market_access.reindex(ids).fillna(market_access.min()).to_numpy())
