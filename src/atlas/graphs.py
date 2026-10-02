@@ -115,24 +115,15 @@ def road_similarity(dist, scale_km):
 
 
 def build_graph(rule, snaps, t, cfg, R=None, road_S=None):
+    """Граф месяца t; при t=None — граф по профилю за весь период и по всему ряду."""
     g = cfg["graph"]
     k = g["k"]
-    X = snaps.X[t]
+    static = t is None
+    X = snaps.X.mean(0) if static else snaps.X[t]
     if rule == "cosine":
         return knn_graph(cosine_similarity(X), k)
     if rule == "road":
         return knn_graph(road_S, k)
-    tm = snaps.months[t]
-    rt = R[1].index(tm)
-    if rule == "residual_corr":
-        S = residual_corr(R[0], rt, g["corr_window"])
-        return None if S is None else knn_graph(S, k)
-    if rule == "lagged_corr":
-        S, _ = lagged_corr(R[0], rt, g["corr_window"], g["lag_max"])
-        return None if S is None else knn_graph(S, k)
-    if rule == "dtw":
-        S = dtw_similarity(R[0], rt, g["corr_window"] * 2, g["dtw_band"], g["dtw_candidates"])
-        return knn_graph(S, k)
     if rule == "hybrid":
         a = g["hybrid_alpha"]
         S = a * (cosine_similarity(X) + 1) / 2 + (1 - a) * road_S
@@ -141,6 +132,17 @@ def build_graph(rule, snaps, t, cfg, R=None, road_S=None):
         layers = [build_graph(r, snaps, t, cfg, R, road_S) for r in g["multiplex_layers"]]
         A = sum(normalized(L) for L in layers if L is not None) / len(layers)
         return sp.csr_matrix(A)
+    rt = R[1].index(snaps.months[-1 if static else t])
+    window = len(R[1]) if static else g["corr_window"]
+    if rule == "residual_corr":
+        S = residual_corr(R[0], rt, window)
+        return None if S is None else knn_graph(S, k)
+    if rule == "lagged_corr":
+        S, _ = lagged_corr(R[0], rt, window, g["lag_max"])
+        return None if S is None else knn_graph(S, k)
+    if rule == "dtw":
+        S = dtw_similarity(R[0], rt, window, g["dtw_band"], g["dtw_candidates"])
+        return knn_graph(S, k)
     raise ValueError(rule)
 
 
