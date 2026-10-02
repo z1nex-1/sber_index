@@ -19,7 +19,10 @@ features:
 
 graph:
   k: 15
-  rules: [cosine, residual_corr, lagged_corr, road, hybrid]
+  rules: [cosine, residual_corr, lagged_corr, dtw, road, hybrid, multiplex]
+  multiplex_layers: [cosine, residual_corr, road]
+  dtw_band: 2
+  dtw_candidates: 60
   lag_max: 2
   corr_window: 12
   road_scale_km: 300
