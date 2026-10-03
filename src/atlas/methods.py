@@ -74,9 +74,15 @@ def _absorb_small(labels, big, A):
     return np.unique(labels, return_inverse=True)[1]
 
 
-def feature_kernel(X):
-    D = ((X[:, None, :] - X[None, :, :]) ** 2).sum(-1)
-    return np.exp(-D / np.median(D))
+def feature_kernel(X, nn=15):
+    """Гауссово ядро с локальным масштабом (Zelnik-Manor, Perona, 2004): sigma_i — расстояние до nn-го соседа.
+
+    С общим масштабом плотное ядро типичных МО склеивается в один кластер, а спектральный метод
+    отделяет только выбросы.
+    """
+    D = np.sqrt(np.maximum(((X[:, None, :] - X[None, :, :]) ** 2).sum(-1), 0))
+    sig = np.sort(D, axis=1)[:, nn]
+    return np.exp(-(D**2) / np.outer(sig, sig))
 
 
 def attributed_spectral(X, A, k, seed, gamma=0.5):
