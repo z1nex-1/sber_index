@@ -1,8 +1,9 @@
-"""Internal cluster validity indices.
+"""Внутренние индексы качества кластеризации.
 
-SW, CH, S_Dbw are computed on node attributes; AVI, AVU, MQ on the weighted graph.
-S_Dbw follows Halkidi & Vazirgiannis (2001). AVI/AVU follow the isolability and
-unifiability notions of Biswas & Biswas (2017, Expert Systems with Applications 70).
+SW, CH, S_Dbw считаются по признакам узлов, AVI, AVU, MQ — по взвешенному графу.
+S_Dbw — по Halkidi, Vazirgiannis (2001). AVI и AVU — средняя изолированность
+кластеров и средняя связанность пар кластеров по Biswas, Biswas (2017,
+Expert Systems with Applications 70). MQ — модулярность Ньюмана.
 """
 
 import numpy as np
@@ -70,15 +71,26 @@ def modularity(W, labels):
     return float(np.trace(B) / m2 - np.sum((dc / m2) ** 2))
 
 
-def all_indices(X, W, labels, sample=None, seed=0):
+FEATURE_INDICES = ["SW", "CH", "S_Dbw"]
+GRAPH_INDICES = ["AVI", "AVU", "MQ"]
+
+
+def feature_indices(X, labels, sample=None, seed=0):
     if len(np.unique(labels)) < 2:
-        return {k: np.nan for k in HIGHER_IS_BETTER}
-    avi, avu = isolability_unifiability(W, labels)
+        return dict.fromkeys(FEATURE_INDICES, np.nan)
     return {
         "SW": float(silhouette_score(X, labels, sample_size=sample, random_state=seed)),
         "CH": float(calinski_harabasz_score(X, labels)),
         "S_Dbw": float(s_dbw(X, labels)),
-        "AVI": avi,
-        "AVU": avu,
-        "MQ": modularity(W, labels),
     }
+
+
+def graph_indices(W, labels):
+    if len(np.unique(labels)) < 2:
+        return dict.fromkeys(GRAPH_INDICES, np.nan)
+    avi, avu = isolability_unifiability(W, labels)
+    return {"AVI": avi, "AVU": avu, "MQ": modularity(W, labels)}
+
+
+def all_indices(X, W, labels, sample=None, seed=0):
+    return {**feature_indices(X, labels, sample, seed), **graph_indices(W, labels)}
