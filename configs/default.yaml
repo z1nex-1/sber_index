@@ -30,8 +30,12 @@ graph:
 
 clustering:
   k_range: [4, 12]
-  methods: [kmeans, gmm, ward, spectral, leiden, attributed_spectral]
-  leiden_resolution: 1.0
+  methods: [kmeans, gmm, ward, spectral, leiden, attributed_spectral, sefnac, dmon]
+  graph_rules: [hybrid, cosine, residual_corr, lagged_corr, dtw, road, multiplex]
+  min_share: 0.01
+  bootstrap: 20
+  bootstrap_frac: 0.8
+  top_for_stability: 12
 
 temporal:
   match_threshold: 0.3

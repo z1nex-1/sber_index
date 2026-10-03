@@ -12,6 +12,7 @@ def fit_dmon(X, A, k, seed, hidden=64, epochs=400, lr=1e-3, dropout=0.3, collaps
     import torch
 
     torch.manual_seed(seed)
+    torch.set_num_threads(1)
     A = sp.csr_matrix(A)
     n = A.shape[0]
     At = torch.tensor(A.toarray(), dtype=torch.float32)

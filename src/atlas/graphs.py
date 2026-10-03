@@ -5,6 +5,18 @@ import scipy.sparse as sp
 from .data import TOTAL
 
 
+# три независимых источника: профиль признаков, ряды отклонений трат, дорожная сеть
+SOURCES = {
+    "cosine": {"features"},
+    "residual_corr": {"series"},
+    "lagged_corr": {"series"},
+    "dtw": {"series"},
+    "road": {"road"},
+    "hybrid": {"features", "road"},
+    "multiplex": {"features", "series", "road"},
+}
+
+
 def knn_graph(S, k):
     S = S.copy()
     np.fill_diagonal(S, -np.inf)
