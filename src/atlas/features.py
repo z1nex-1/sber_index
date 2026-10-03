@@ -73,7 +73,11 @@ def build_snapshots(wide, market_access, cfg):
 
     S = shares.to_numpy().reshape(len(ids), len(months), -1).transpose(1, 0, 2)
     L = level.to_numpy().reshape(len(ids), len(months)).T[..., None]
-    blocks = [("structure", clr(S), [f"clr:{c}" for c in share_names]), ("level", L, ["level"])]
+    C = clr(S)
+    if fc.get("relative_to_month", True):
+        # общий для страны сдвиг (рост маркетплейсов в 2024) иначе переводит в другой тип всех разом
+        C = C - np.median(C, axis=1, keepdims=True)
+    blocks = [("structure", C, [f"clr:{c}" for c in share_names]), ("level", L, ["level"])]
 
     if fc.get("use_rhythm", True):
         rh = rhythm(wide).loc[ids]
