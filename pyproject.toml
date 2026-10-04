@@ -1,0 +1,9 @@
+[project]
+name = "atlas"
+version = "1.0.0"
+description = "Типология локальных экономик российских муниципалитетов по данным СберИндекса"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
