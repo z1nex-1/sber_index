@@ -1,28 +1,13 @@
-from dataclasses import dataclass
-
 import numpy as np
-from sklearn.cluster import KMeans
 
 
-@dataclass
-class Typology:
-    static: np.ndarray
-    monthly: np.ndarray
-    centers: np.ndarray
-    profile: np.ndarray
-
-
-def fit_typology(snaps, k, seed):
-    profile = snaps.X.mean(0)
-    km = KMeans(k, n_init=50, random_state=seed).fit(profile)
-    order = np.argsort(-km.cluster_centers_[:, snaps.names.index("level")])
+def order_by_level(labels, level):
+    """Номера типов по убыванию медианного уровня трат: 0 — самые высокие расходы."""
+    k = labels.max() + 1
+    med = np.array([np.median(level[labels == c]) for c in range(k)])
     remap = np.empty(k, dtype=int)
-    remap[order] = np.arange(k)
-    centers = km.cluster_centers_[order]
-    static = remap[km.labels_]
-    d = ((snaps.X[:, :, None, :] - centers[None, None]) ** 2).sum(-1)
-    monthly = d.argmin(-1)
-    return Typology(static=static, monthly=monthly, centers=centers, profile=profile)
+    remap[np.argsort(-med)] = np.arange(k)
+    return remap[labels]
 
 
 def twins(profile, n):

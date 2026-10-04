@@ -141,16 +141,17 @@ ABLATIONS = {
 }
 
 
-def ablation(cfg, method, k, reference):
+def ablation(cfg, final, reference):
+    """Итоговый метод на урезанных или расширенных наборах признаков; сеть строится заново из тех же признаков."""
     wide = load_consumption(cfg)
     ma = load_market_access(cfg)
     rows = []
     for name, patch in ABLATIONS.items():
         fc = {**cfg["features"], **{k2: v for k2, v in patch.items() if k2 != "weights"}}
         fc["weights"] = {**cfg["features"]["weights"], **patch.get("weights", {})}
-        snaps = build_snapshots(wide, ma, {**cfg, "features": fc})
-        X = snaps.X.mean(0)
-        lab = METHODS[method](X, None, k, cfg["seed"])
-        rows.append({"variant": name, "features": X.shape[1], "ari_to_final": adjusted_rand_score(reference, lab),
-                     **feature_indices(X, lab)})
+        vcfg = {**cfg, "features": fc}
+        ctx = prepare(vcfg, build_snapshots(wide, ma, vcfg))
+        lab = METHODS[final["method"]](ctx.X, ctx.graphs[final["rule"]], final["k"], cfg["seed"])
+        rows.append({"variant": name, "features": ctx.X.shape[1], "ari_to_final": adjusted_rand_score(reference, lab),
+                     **feature_indices(ctx.X, lab), **graph_indices(ctx.graphs["residual_corr"], lab)})
     return pd.DataFrame(rows)
