@@ -5,7 +5,7 @@ from .data import load_config
 
 def main():
     p = argparse.ArgumentParser(prog="atlas")
-    p.add_argument("command", choices=["fetch", "export"])
+    p.add_argument("command", choices=["fetch", "run", "export"])
     p.add_argument("--config", default="configs/default.yaml")
     p.add_argument("--out", default="site/data")
     p.add_argument("--no-geometry", action="store_true")
@@ -17,6 +17,10 @@ def main():
         fetch(verify_tls=not a.no_verify_tls)
         return
     cfg = load_config(a.config)
+    if a.command == "run":
+        from .pipeline import run
+
+        run(cfg)
     if a.command == "export":
         from .export import export_site
 

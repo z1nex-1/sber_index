@@ -38,5 +38,25 @@ clustering:
   bootstrap_frac: 0.8
   top_for_stability: 12
 
+final:
+  method: attributed_spectral
+  rule: hybrid
+  k: 7
+
 temporal:
+  rule: hybrid
+  p_switch: 0.03
+  min_run: 6
+  null_block: 3
+  null_samples: 50
+  lambda_grid: [0, 10, 41]
+  multislice_resolution: 0.3
+  multislice_omega: [0.0, 0.05, 0.2, 1.0]
   match_threshold: 0.3
+
+interpretation:
+  fca_max_attrs: 3
+  fca_min_precision: 0.5
+  fca_min_extent: 10
+  sensitivity_knn: [5, 10, 15, 20, 30]
+  sensitivity_rules: [hybrid, cosine, residual_corr, road]
