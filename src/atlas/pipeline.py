@@ -103,6 +103,7 @@ def run(cfg, out="outputs"):
         "raw": switch_stats(raw_path, lab), "hmm": switch_stats(path, lab),
         "persistent": len(changes), "null_mean": float(null.mean()), "null_sd": float(null.std()),
         "null_p": float((null >= len(changes)).mean()),
+        "null_samples": null.astype(int).tolist(),
         "p_switch_sensitivity": sens, "multislice": ms,
     }
     _json(dyn, out / "dynamics.json")

@@ -5,11 +5,9 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from .data import TOTAL, load_consumption, load_dictionary, load_market_access, load_road_distances
-from .features import OTHER, build_snapshots
-from .graphs import build_graph, category_residuals, road_similarity
-from .icvi import isolability_unifiability, modularity
-from .typology import fit_typology, twins
+from .data import TOTAL, load_dictionary, load_market_access
+from .features import OTHER
+from .typology import twins
 
 N_TWINS = 6
 MO_KINDS = {
@@ -72,53 +70,67 @@ def economic_space(profile, seed):
     return xy / xy.max()
 
 
-def graph_stats(G, labels, regions, dist):
-    from scipy.sparse.csgraph import connected_components
+def _records(df, cols, digits=4):
+    return [{c: (round(float(v), digits) if isinstance(v, (float, np.floating)) and np.isfinite(v) else
+                 None if isinstance(v, (float, np.floating)) else v) for c, v in zip(cols, row)} for row in df[cols].itertuples(index=False)]
 
-    rows, cols = G.nonzero()
-    upper = rows < cols
-    i, j = rows[upper], cols[upper]
-    km = dist[i, j]
-    avi, avu = isolability_unifiability(G, labels)
+
+def _clean(obj):
+    if isinstance(obj, dict):
+        return {k: _clean(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean(v) for v in obj]
+    if isinstance(obj, float) and not np.isfinite(obj):
+        return None
+    return obj
+
+
+def _load_results(res):
+    res = Path(res)
+    grid = pd.read_csv(res / "ranking.csv").set_index("key")
+    runs = pd.read_csv(res / "grid.csv").set_index("key")
     return {
-        "edges": int(upper.sum()),
-        "degree": round(float(2 * upper.sum() / G.shape[0]), 1),
-        "components": int(connected_components(G, directed=False)[0]),
-        "same_region": round(float((regions[i] == regions[j]).mean()), 3),
-        "cross_type": round(float((labels[i] != labels[j]).mean()), 3),
-        "median_km": round(float(np.median(km[np.isfinite(km)])), 0),
-        "MQ": round(modularity(G, labels), 3),
-        "AVI": round(avi, 3),
-        "AVU": round(avu, 3),
+        "types": pd.read_csv(res / "types.csv").set_index("territory_id").type,
+        "monthly": np.load(res / "monthly_types.npy"),
+        "runs": runs.join(grid[["borda_rank", "copeland_rank", "kemeny_rank"]]),
+        "concordance": pd.read_csv(res / "concordance.csv", index_col=0).iloc[:, 0],
+        "stability": pd.read_csv(res / "stability.csv").set_index("key"),
+        "ablation": pd.read_csv(res / "ablation.csv"),
+        "sensitivity": pd.read_csv(res / "graph_sensitivity.csv"),
+        "dynamics": json.loads((res / "dynamics.json").read_text(encoding="utf-8")),
+        "interp": json.loads((res / "interpretation.json").read_text(encoding="utf-8")),
+        "changes": pd.read_csv(res / "changes.csv"),
     }
 
 
-def export_site(cfg, out_dir, with_geometry=True):
+def export_site(cfg, out_dir, with_geometry=True, results="outputs"):
+    from .experiments import prepare
+    from .graphs import graph_properties
+    from .icvi import graph_indices
+
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     types_cfg = yaml.safe_load(open("configs/types.yaml", encoding="utf-8"))
     k = types_cfg["k"]
+    R = _load_results(results)
 
-    wide = load_consumption(cfg)
+    ctx = prepare(cfg)
+    snaps, ids, wide, dist = ctx.snaps, ctx.snaps.ids, ctx.wide, ctx.dist
+    static = R["types"].reindex(ids).to_numpy()
+    monthly = R["monthly"]
+    if static.max() + 1 != k:
+        raise SystemExit(f"в configs/types.yaml {k} типов, а в модели {static.max() + 1}: обновите описания типов")
     ma = load_market_access(cfg)
-    snaps = build_snapshots(wide, ma, cfg)
-    ids = snaps.ids
     info = load_dictionary(cfg, ids)
     polys = _load_polygons(cfg)
     inner = polys.set_index("territory_id").geometry.representative_point().reindex(ids)
     missing = info["lat"].isna()
     info.loc[missing, "lat"] = inner[missing].y
     info.loc[missing, "lon"] = inner[missing].x
-    ty = fit_typology(snaps, k, cfg["seed"])
-    tw, tw_sim = twins(ty.profile, N_TWINS)
-
-    dist = load_road_distances(cfg, ids)
-    road_S = road_similarity(dist, cfg["graph"]["road_scale_km"])
-    R = category_residuals(wide, ids, cfg["features"]["categories"])
-    last = len(snaps.months) - 1
-    graphs = {rule: build_graph(rule, snaps, last, cfg, R, road_S).tocsr() for rule in cfg["graph"]["rules"]}
-    A = graphs["hybrid"]
-    layout = economic_space(ty.profile, cfg["seed"])
+    tw, tw_sim = twins(ctx.X, N_TWINS)
+    fin = cfg["final"]
+    A = ctx.graphs[fin["rule"]]
+    layout = economic_space(ctx.X, cfg["seed"])
 
     cats = cfg["features"]["categories"] + [OTHER]
     shares = snaps.raw[[f"share:{c}" for c in cats]]
@@ -126,6 +138,7 @@ def export_site(cfg, out_dir, with_geometry=True):
     mean_shares = shares[shares.index.get_level_values(1).isin(last12)].groupby(level=0).mean().loc[ids]
     total = wide[TOTAL].unstack().loc[ids]
     all_months = list(total.columns)
+    changed = set(R["changes"].territory_id)
 
     records = []
     for i, tid in enumerate(ids):
@@ -140,8 +153,9 @@ def export_site(cfg, out_dir, with_geometry=True):
                 "r": r["region_name"],
                 "rc": int(r["region_code"]),
                 "c": r["center"] if isinstance(r["center"], str) else "",
-                "t": int(ty.static[i]),
-                "tm": "".join(map(str, ty.monthly[:, i])),
+                "t": int(static[i]),
+                "tm": "".join(map(str, monthly[:, i])),
+                "ch": int(tid in changed),
                 "sh": [round(float(v), 4) for v in mean_shares.iloc[i]],
                 "s": [int(v) for v in total.iloc[i]],
                 "ma": round(float(ma.get(tid, np.nan)), 1) if tid in ma.index else None,
@@ -158,21 +172,36 @@ def export_site(cfg, out_dir, with_geometry=True):
         "s": [int(v) for v in total.median().round()],
         "sh": [round(float(v), 4) for v in mean_shares.median()],
     }
+    fca = {row["type"]: row for row in R["interp"]["fca"]}
     types = []
     for t in range(k):
-        members = ty.static == t
-        tc = types_cfg["types"][t]
+        members = static == t
+        f = fca.get(t, {})
         types.append(
             {
                 "id": t,
-                **tc,
+                **types_cfg["types"][t],
                 "n": int(members.sum()),
                 "sh": [round(float(v), 4) for v in mean_shares[members].median()],
                 "s": [int(v) for v in total[members].median().round()],
-                "stay": round(float((ty.monthly[:, members] == t).mean()), 3),
+                "stay": round(float((monthly[:, members] == t).mean()), 3),
+                "fca": {"attrs": f.get("generator", []), "intent": f.get("intent", []), "extent": f.get("extent", 0),
+                        "precision": round(f.get("precision", 0), 3), "recall": round(f.get("recall", 0), 3)},
             }
         )
 
+    regions = info["region_code"].to_numpy()
+    rules = {}
+    for rule, G in ctx.graphs.items():
+        props = graph_properties(G, regions, dist)
+        U = G.tocoo()
+        props["cross_type"] = float((static[U.row] != static[U.col]).mean())
+        rules[rule] = {key: round(float(v), 3) for key, v in {**props, **graph_indices(G, static)}.items()}
+
+    runs = R["runs"].reset_index()
+    cols = ["key", "method", "family", "rule", "k", "min_share", "SW", "CH", "S_Dbw", "AVI", "AVU", "MQ",
+            "borda_rank", "copeland_rank", "kemeny_rank"]
+    fin_key = f"{fin['method']}|{fin['rule']}|{fin['k']}"
     meta = {
         "months": all_months,
         "snapshot_months": snaps.months,
@@ -180,17 +209,24 @@ def export_site(cfg, out_dir, with_geometry=True):
         "n_mo": len(ids),
         "types": types,
         "national": national,
-        "graph": {"k": cfg["graph"]["k"], "default": "hybrid", "rules": {
-            rule: graph_stats(G, ty.static, info["region_code"].to_numpy(), dist) for rule, G in graphs.items()
-        }},
+        "graph": {"k": cfg["graph"]["k"], "default": fin["rule"], "rules": rules},
+        "model": {**fin, "key": fin_key, "stability": R["stability"].loc[fin_key].round(3).to_dict()},
+        "grid": _records(runs, cols),
+        "concordance": {int(kk): round(float(v), 3) for kk, v in R["concordance"].items()},
+        "stability": _records(R["stability"].reset_index(), ["key", "ari_boot_mean", "ari_boot_q10", "ari_seed_mean"], 3),
+        "ablation": _records(R["ablation"], list(R["ablation"].columns), 3),
+        "dynamics": R["dynamics"],
+        "validation": R["interp"]["validation"],
+        "join_count": R["interp"]["join_count_road"],
+        "within_region": R["interp"]["within_region"],
     }
-    json.dump(meta, open(out / "meta.json", "w", encoding="utf-8"), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+    json.dump(_clean(meta), open(out / "meta.json", "w", encoding="utf-8"), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
     json.dump(records, open(out / "mo.json", "w", encoding="utf-8"), ensure_ascii=False, allow_nan=False, separators=(",", ":"))
 
-    for rule, G in graphs.items():
-        rows, cols = G.nonzero()
-        upper = rows < cols
-        edges = np.stack([rows[upper], cols[upper]], 1).astype(int).ravel().tolist()
+    for rule, G in ctx.graphs.items():
+        rows, cols_ = G.nonzero()
+        upper = rows < cols_
+        edges = np.stack([rows[upper], cols_[upper]], 1).astype(int).ravel().tolist()
         json.dump(edges, open(out / f"edges-{rule}.json", "w"), separators=(",", ":"))
 
     if with_geometry:
