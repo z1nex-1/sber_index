@@ -8,7 +8,7 @@ def oriented(df, higher_is_better):
 
 
 def borda(S):
-    return S.rank(axis=0, method="average").sum(1) - len(S.columns)
+    return S.rank(axis=0, method="average").sum(axis=1) - len(S.columns)
 
 
 def majority(S):
@@ -19,7 +19,7 @@ def majority(S):
 
 def copeland(S):
     M = majority(S)
-    return pd.Series(np.sign(M - M.T).sum(1), index=S.index)
+    return pd.Series(np.sign(M - M.T).sum(axis=1), index=S.index)
 
 
 def kemeny_local(S, start):
@@ -48,7 +48,7 @@ def kendall_w(S):
     """Коэффициент конкордации Кендалла: насколько индексы согласны между собой (0 — нет, 1 — полностью)."""
     R = S.rank(axis=0).to_numpy()
     n, m = R.shape
-    s = ((R.sum(1) - m * (n + 1) / 2) ** 2).sum()
+    s = ((R.sum(axis=1) - m * (n + 1) / 2) ** 2).sum()
     return float(12 * s / (m**2 * (n**3 - n)))
 
 

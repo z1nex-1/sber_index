@@ -32,17 +32,17 @@ def rhythm(wide):
     """
     logs = np.log(wide[TOTAL])
     r = (logs - logs.groupby(level=1).transform("median")).unstack()
-    r = r.sub(r.mean(1), axis=0)
+    r = r.sub(r.mean(axis=1), axis=0)
     cal = np.array([int(m[5:]) for m in r.columns])
     profile = r.T.groupby(cal).mean().T
     t = np.arange(r.shape[1]) - (r.shape[1] - 1) / 2
-    slope = (r * t).sum(1) / (t**2).sum()
+    slope = (r * t).sum(axis=1) / (t**2).sum()
     rest = r - profile[cal].to_numpy() - np.outer(slope, t)
     return pd.DataFrame(
         {
-            "amplitude": profile.std(1),
-            "summer": profile[[6, 7, 8]].mean(1) - profile.mean(1),
-            "volatility": rest.std(1),
+            "amplitude": profile.std(axis=1),
+            "summer": profile[[6, 7, 8]].mean(axis=1) - profile.mean(axis=1),
+            "volatility": rest.std(axis=1),
         }
     )
 

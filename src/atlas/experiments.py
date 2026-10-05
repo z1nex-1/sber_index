@@ -80,7 +80,7 @@ def with_fair_graph_indices(runs, graphs):
     runs = runs.copy()
     fair = np.array([[not (run_sources(m, r) & SOURCES[g]) for g in graphs] for m, r in zip(runs.method, runs.rule)])
     for name in GRAPH_INDICES:
-        runs[name] = runs[[f"{name}@{g}" for g in graphs]].where(fair).mean(1)
+        runs[name] = runs[[f"{name}@{g}" for g in graphs]].where(fair).mean(axis=1)
     return runs
 
 
@@ -93,7 +93,8 @@ def run_sources(method, rule):
 
 def rank_runs(runs, min_share):
     """Рейтинг внутри каждого k: сравнивать разные k по SW и CH нельзя — оба смещены к малым k."""
-    ok = runs[(runs.min_share >= min_share) & (runs.clusters >= 2)]
+    # у прогонов на мультиплексе нет независимой сети для графовых индексов — они остаются только в перекрёстной таблице
+    ok = runs[(runs.min_share >= min_share) & (runs.clusters >= 2)].dropna(subset=list(HIGHER_IS_BETTER))
     parts, concord = [], {}
     for k, grp in ok.groupby("k"):
         S = oriented(grp, HIGHER_IS_BETTER)
