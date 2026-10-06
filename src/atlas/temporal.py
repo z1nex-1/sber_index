@@ -89,6 +89,19 @@ def fit_lambda(X, A_share, centers, tau, labels, grid):
     return float(grid[int(np.argmax(acc))]), float(max(acc))
 
 
+def display_types(path, static, changes):
+    """Тип МО по месяцам для карты: свой итоговый тип, а у МО с устойчивой сменой — путь модели."""
+    out = np.broadcast_to(static, path.shape).copy()
+    idx = changes.i.to_numpy() if len(changes) else np.array([], dtype=int)
+    out[:, idx] = path[:, idx]
+    return out
+
+
+def boundary(path, static):
+    """МО, которые помесячная модель весь период относит не к их итоговому типу: пограничные между типами."""
+    return np.where((path == path[:1]).all(0) & (path[0] != static))[0]
+
+
 def viterbi_types(emit, p_switch):
     """Помесячный тип как путь скрытой марковской модели.
 

@@ -15,7 +15,7 @@ from .graphs import graph_properties
 from .icvi import feature_indices, graph_indices
 from .interpret import describe_types, external_validation, formal_context, join_count, within_region
 from .methods import METHODS
-from .temporal import (block_null, centroids, emissions, fit_lambda, monthly_graphs, multislice_leiden,
+from .temporal import (block_null, boundary, centroids, display_types, emissions, fit_lambda, monthly_graphs, multislice_leiden,
                        neighbour_share, persistent_changes, slice_agreement, switch_stats, track_events,
                        viterbi_types)
 from .typology import order_by_level
@@ -77,13 +77,15 @@ def run(cfg, out="outputs"):
     lam, acc = fit_lambda(ctx.X, F0, C, tau, lab, np.linspace(*tc["lambda_grid"]))
     E = emissions(ctx.snaps.X, C, tau, F, lam)
     path = viterbi_types(E, tc["p_switch"])
-    raw_path = emissions(ctx.snaps.X, C, tau, F, lam).argmax(-1)
+    raw_path = E.argmax(-1)
     changes = persistent_changes(path, tc["min_run"])
+    border = boundary(path, lab)
+    pd.DataFrame({"territory_id": ids[border], "type": lab[border], "model_type": path[0, border]}).to_csv(out / "boundary.csv", index=False)
+    np.save(out / "monthly_types.npy", display_types(path, lab, changes))
     changes.insert(0, "territory_id", ids[changes.i.to_numpy()] if len(changes) else [])
     changes["month"] = [ctx.snaps.months[t] for t in changes.t]
     changes.drop(columns="i").to_csv(out / "changes.csv", index=False)
     null = block_null(E, tc["p_switch"], tc["null_block"], tc["min_run"], tc["null_samples"], cfg["seed"])
-    np.save(out / "monthly_types.npy", path)
     sens = []
     for ps in [0.01, 0.03, 0.1]:
         p = viterbi_types(E, ps)
@@ -99,7 +101,7 @@ def run(cfg, out="outputs"):
                    "communities_max": int(max(len(np.unique(m)) for m in M)),
                    "nmi_to_types": float(np.mean(slice_agreement(M, lab))), **counts})
     dyn = {
-        "lambda": lam, "lambda_accuracy": acc, "tau": tau,
+        "lambda": lam, "lambda_accuracy": acc, "tau": tau, "boundary": int(len(border)),
         "raw": switch_stats(raw_path, lab), "hmm": switch_stats(path, lab),
         "persistent": len(changes), "null_mean": float(null.mean()), "null_sd": float(null.std()),
         "null_p": float((null >= len(changes)).mean()),
