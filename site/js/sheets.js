@@ -13,7 +13,7 @@ export function renderImprint(node, meta) {
   node.replaceChildren(...rows.map(([k, v]) => {
     const b = el("b", {}, typeof v === "number" ? "0" : v);
     if (typeof v === "number") {
-      d3.select(b).transition().duration(reducedMotion ? 0 : 1400).ease(d3.easeCubicOut)
+      d3.select(b).transition().duration(reducedMotion ? 0 : 700).ease(d3.easeCubicOut)
         .tween("text", () => { const i = d3.interpolateRound(0, v); return (t) => { b.textContent = fmtInt(i(t)); }; });
     }
     return el("div", {}, el("span", {}, k), b);
@@ -50,6 +50,9 @@ export function renderPortraits(node, meta, records, app) {
         el("b", {}, fmtInt(t.n)), ` ${plural(t.n, "муниципалитет", "муниципалитета", "муниципалитетов")}`, el("br"),
         "расходы ", el("b", {}, fmtRub(s24)), ` на жителя (${s24 > n24 ? "+" : "−"}${fmtPct(Math.abs(s24 / n24 - 1))} к России)`, el("br"),
         "в своём типе ", el("b", {}, fmtPct(t.stay)), " месяцев"),
+      t.fca.attrs.length ? el("div", { class: "fca" }, el("span", { class: "fca-h" }, "Формальное понятие"),
+        el("ul", {}, t.fca.attrs.map((a) => el("li", {}, a))),
+        el("small", {}, `${fmtInt(t.fca.extent)} МО обладают всеми признаками, из них ${fmtPct(t.fca.precision)} — этого типа; охват типа ${fmtPct(t.fca.recall)}`)) : null,
       el("div", { class: "ex" }, "Типичные: ", ex.flatMap((r, i) => [i ? ", " : "",
         el("a", { href: "#", onclick: (e) => { e.preventDefault(); e.stopPropagation(); app.select(r.id, { fly: true, scroll: true }); } }, r.n)])),
       el("div", { class: "more" }, "Показать на карте →"),
@@ -62,7 +65,7 @@ export function renderFlows(svgEl, meta, records, app, tip) {
   const cols = months.map((m, i) => i).filter((i) => /-(03|06|09|12)$/.test(months[i]));
   const K = meta.types.length;
   const w = 900, h = 560, top = 26, bottom = 10, nodeW = 12, gap = 6;
-  const x = d3.scalePoint().domain(cols).range([110, w - 150]);
+  const x = d3.scalePoint().domain(cols).range([196, w - 236]);
   const ky = (h - top - bottom - gap * (K - 1)) / records.length;
 
   const nodes = cols.map((c, k) => {
@@ -121,16 +124,27 @@ export function renderFlows(svgEl, meta, records, app, tip) {
   const lg = svg.append("g").selectAll("g").data(last).join("g").attr("transform", (n) => `translate(${x(cols.at(-1)) + 12},${(n.y0 + n.y1) / 2})`)
     .on("mouseenter", (ev, n) => focusType(n.t)).on("mouseleave", () => focusType(null));
   lg.append("text").attr("class", "flow-label").attr("dy", "0.35em").text((n) => meta.types[n.t].short);
-  lg.append("text").attr("class", "flow-count").attr("dy", "0.35em").attr("x", 96).text((n) => fmtInt(n.n));
+  lg.append("text").attr("class", "flow-count").attr("dy", "0.35em").attr("x", 204).attr("text-anchor", "end").text((n) => fmtInt(n.n));
 }
 
-export function movers(records, len = 6) {
-  const mode = (s) => { const c = d3.rollup([...s], (v) => v.length, (d) => d); return +d3.greatest(c, (d) => d[1])[0]; };
-  return records.map((r) => {
-    const a = mode(r.tm.slice(0, len)), b = mode(r.tm.slice(-len));
-    const stable = [...r.tm.slice(-len)].every((c) => +c === b);
-    return { r, a, b, stable };
-  }).filter((x) => x.a !== x.b && x.stable);
+export function movers(records) {
+  return records.filter((r) => r.ch).map((r) => ({ r, a: +r.tm[0], b: +r.tm.at(-1) }));
+}
+
+export function renderNull(svgEl, note, meta) {
+  const d = meta.dynamics;
+  const w = 320, h = 110, m = { l: 8, r: 8, t: 10, b: 22 };
+  const bins = d3.bin().thresholds(12)(d.null_samples);
+  const x = d3.scaleLinear([0, Math.max(d.persistent, d3.max(d.null_samples)) * 1.1], [m.l, w - m.r]);
+  const y = d3.scaleLinear([0, d3.max(bins, (b) => b.length)], [h - m.b, m.t]);
+  const svg = d3.select(svgEl).attr("viewBox", `0 0 ${w} ${h}`);
+  svg.selectAll("*").remove();
+  svg.append("g").selectAll("rect").data(bins).join("rect").attr("class", "null-bar")
+    .attr("x", (b) => x(b.x0) + 1).attr("width", (b) => Math.max(1, x(b.x1) - x(b.x0) - 2)).attr("y", (b) => y(b.length)).attr("height", (b) => y(0) - y(b.length));
+  svg.append("line").attr("class", "null-obs").attr("x1", x(d.persistent)).attr("x2", x(d.persistent)).attr("y1", m.t - 4).attr("y2", h - m.b);
+  svg.append("text").attr("class", "null-lbl").attr("x", x(d.persistent) - 4).attr("y", m.t + 6).attr("text-anchor", "end").text(`${d.persistent} на деле`);
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickSize(3));
+  note.textContent = `Столбцы — сколько «устойчивых смен типа» получается, если перемешать месяцы блоками по три: ${d.null_mean.toFixed(1).replace(".", ",")} ± ${d.null_sd.toFixed(1).replace(".", ",")} в ${d.null_samples.length} перестановках. На деле — ${d.persistent}: смены не объясняются шумом.`;
 }
 
 export function renderMovers(root, meta, records, app) {
@@ -147,7 +161,7 @@ export function renderMovers(root, meta, records, app) {
     const f = filter.value;
     const shown = all.filter((x) => !f || `${x.a}>${x.b}` === f)
       .sort((p, q) => p.r.r.localeCompare(q.r.r, "ru") || p.r.n.localeCompare(q.r.n, "ru"));
-    head.textContent = `Сменили тип и удержались — ${fmtInt(shown.length)}`;
+    head.textContent = `Устойчиво сменили тип — ${fmtInt(shown.length)}`;
     list.replaceChildren(...shown.map(({ r, a, b }) => el("li", { onclick: () => app.select(r.id, { fly: true, scroll: true }) },
       el("span", {}, el("span", { class: "nm" }, r.n), el("small", {}, `${r.r} · ${meta.types[a].short} → ${meta.types[b].short}`)),
       el("span", { class: "path" }, el("i", { style: `background:${meta.types[a].color}` }), "→", el("i", { style: `background:${meta.types[b].color}` })),
@@ -159,12 +173,17 @@ export function renderMovers(root, meta, records, app) {
 }
 
 export function renderSteps(node, meta) {
+  const v = Object.fromEntries(meta.validation.map((x) => [`${x.variable}|${x.measure}`, x.value]));
+  const f2 = (x) => x.toFixed(2).replace(".", ",");
+  const st = meta.model.stability;
   const steps = [
-    ["Данные", `Оценки безналичных расходов на жителя по ${meta.categories.length - 1} категориям и в целом, ${meta.months.length} месяцев. Индекс доступности рынков, расстояния по дорогам, границы МО — всё из открытых наборов СберИндекса.`],
-    ["Признаки", "Доли категорий в тратах переведены в логарифмы отношений (CLR): для долей, которые в сумме дают единицу, обычное расстояние искажает сравнение. Уровень трат взят относительно медианы по стране в том же месяце — так уходят сезонность и инфляция."],
-    ["Сеть", "Узел — муниципалитет, ребро — экономическая близость. Сравниваются пять правил: сходство профилей, синхронность колебаний, опережение с лагом, соседство по дорогам и их сочетание."],
-    ["Типы", "Муниципалитеты разбиты на типы по усреднённому профилю, затем каждый месячный срез отнесён к ближайшему типу. Качество разбиения проверяется шестью внутренними индексами: SW, CH, S_Dbw, AVI, AVU, MQ."],
-    ["Динамика", "Для каждого месяца известен тип каждого муниципалитета. Потоки между кварталами показывают устойчивость типов, а список сменивших тип — территории, где структура трат действительно изменилась."],
+    ["Данные", `Оценки безналичных расходов на жителя по ${meta.categories.length - 1} категориям и в целом, ${meta.months.length} месяцев, ${fmtInt(meta.n_mo)} МО с полными рядами. Индекс доступности рынков, расстояния по дорогам и границы — из наборов СберИндекса; численность населения, Крайний Север и моногорода — из бюллетеня Росстата, только для проверки.`],
+    ["Признаки", "Доли категорий переведены в логарифмы отношений (CLR) и взяты относительно медианы страны в том же месяце — общий для всех рост маркетплейсов не переводит территории в другой тип. К структуре добавлены уровень трат к медиане и ритм: сезонная амплитуда, летний пик, волатильность. Окно сглаживания — 3 месяца."],
+    ["Сеть", `Узел — муниципалитет, ребро — экономическая близость, k = ${meta.graph.k} ближайших соседей. Семь правил: сходство профилей, синхронность колебаний, опережение с лагом, DTW, дороги, гибрид и мультиплекс. Итоговое — гибрид: 70% сходства профилей и 30% дорожной близости.`],
+    ["Методы", "Восемь методов в трёх семействах: по признакам (k-средних, гауссова смесь, Уорд), по сети (спектральная, Leiden) и по признакам вместе с сетью (спектральная на смешанном ядре, SEFNAC, графовая нейросеть DMoN). Каждый — при k от 4 до 12 и на каждой подходящей сети."],
+    ["Индексы", `SW, CH и S_Dbw по признакам, AVI, AVU и MQ по сети. Графовые индексы считаются только на сетях из других данных, чем использовал метод, иначе метод выигрывает на собственной сети. Места сведены правилами Кемени, Борда и Коупленда внутри каждого k. Итоговая модель — спектральная на признаках и гибридной сети, k = ${meta.model.k}: устойчивость на подвыборках ${f2(st.ari_boot_mean)}.`],
+    ["Динамика", `Помесячный тип — путь скрытой марковской модели: признаки месяца плюс доля соседей каждого типа, вероятность сменить тип за месяц ${String(meta.dynamics.p_switch_sensitivity[1].p_switch).replace(".", ",")}. Устойчиво сменили тип ${meta.dynamics.persistent} МО против ${f2(meta.dynamics.null_mean)} в перестановочном нуле. Для сравнения — мультислойный Leiden и события кластеров по Грину.`],
+    ["Проверка", `Типы связаны с тем, что в модель не входило: Крайний Север — V Крамера ${f2(v["Крайний Север|V Крамера"])}, численность населения — η² ${f2(v["численность населения, log|η²"])}, доступность рынков — η² ${f2(v["индекс доступности рынков, log|η²"])}. С регионами совпадение умеренное (NMI ${f2(v["регион|NMI"])}): в ${meta.within_region.multi_type} регионах из ${meta.within_region.regions} встречается больше одного типа.`],
   ];
   node.replaceChildren(...steps.map(([h, p], i) => el("div", { class: "step" },
     el("div", { class: "sn" }, i + 1), el("h4", {}, h), el("p", {}, p))));
