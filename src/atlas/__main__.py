@@ -5,7 +5,7 @@ from .data import load_config
 
 def main():
     p = argparse.ArgumentParser(prog="atlas")
-    p.add_argument("command", choices=["fetch", "run", "export"])
+    p.add_argument("command", choices=["fetch", "run", "export", "figures"])
     p.add_argument("--config", default="configs/default.yaml")
     p.add_argument("--out", default="site/data")
     p.add_argument("--no-geometry", action="store_true")
@@ -21,6 +21,10 @@ def main():
         from .pipeline import run
 
         run(cfg)
+    if a.command == "figures":
+        from .figures import build
+
+        build(cfg)
     if a.command == "export":
         from .export import export_site
 

@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 RUN = PYTHONPATH=src $(PY) -m atlas
 
-.PHONY: all setup data run site test serve report
+.PHONY: all setup data run site figures test serve report
 
 all: data run site
 
@@ -18,11 +18,14 @@ run:
 site:
 	$(RUN) export
 
+figures:
+	$(RUN) figures
+
 test:
 	$(PY) -m pytest -q
 
 serve:
 	$(PY) -m http.server 8765 --directory site
 
-report:
-	typst compile --root . report/report.typ report/report.pdf
+report: figures
+	typst compile --root . --font-path report/fonts report/report.typ report/report.pdf
