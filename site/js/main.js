@@ -1,15 +1,19 @@
 import { renderCard, updateCardMonth } from "./card.js";
 import { createMap, createTimescale } from "./map.js";
+import { createMethods, renderWhy } from "./methods.js";
 import { createNetwork } from "./network.js";
-import { renderFlows, renderImprint, renderLegend, renderMovers, renderPortraits, renderSteps } from "./sheets.js";
+import { renderFlows, renderImprint, renderLegend, renderMovers, renderNull, renderPortraits, renderSteps } from "./sheets.js";
 import { createSpace } from "./space.js";
 import { loadAll, reducedMotion } from "./util.js";
 
 const tipEl = document.getElementById("tip");
 const tipText = tipEl.querySelector(".tip-text");
 const tipArt = tipEl.querySelector(".tip-art");
+// на сенсорных экранах подсказка после касания не исчезает и закрывает карточку — там её нет
+const noHover = window.matchMedia("(hover: none)").matches;
 const tip = {
   show(ev, html, art = null) {
+    if (noHover) return;
     tipText.innerHTML = html;
     if (art) tipArt.replaceChildren(art); else tipArt.replaceChildren();
     tipEl.classList.toggle("with-art", !!art);
@@ -208,8 +212,13 @@ async function main() {
   const lazy = {
     space: () => { space = createSpace({ root: document.getElementById("space"), meta, records, projection: map.projection, coast, app, tip }); space.show(); },
     types: () => renderPortraits(document.getElementById("portraits"), meta, records, app),
-    drift: () => { renderFlows(document.getElementById("flowsvg"), meta, records, app, tip); renderMovers(document.getElementById("drift"), meta, records, app); },
+    drift: () => {
+      renderFlows(document.getElementById("flowsvg"), meta, records, app, tip);
+      renderMovers(document.getElementById("drift"), meta, records, app);
+      renderNull(document.getElementById("nullsvg"), document.getElementById("nullnote"), meta);
+    },
     network: () => createNetwork({ root: document.getElementById("network"), meta, records, byId, projection: map.projection, geo, regions, coast, H: map.H, app, tip }),
+    methods: () => { createMethods({ root: document.getElementById("methods"), meta, tip }); renderWhy(document.getElementById("mxwhy"), meta); },
     method: () => renderSteps(document.getElementById("steps"), meta),
   };
   const io = new IntersectionObserver((entries) => {

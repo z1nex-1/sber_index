@@ -100,6 +100,7 @@ def _load_results(res):
         "dynamics": json.loads((res / "dynamics.json").read_text(encoding="utf-8")),
         "interp": json.loads((res / "interpretation.json").read_text(encoding="utf-8")),
         "changes": pd.read_csv(res / "changes.csv"),
+        "boundary": pd.read_csv(res / "boundary.csv").set_index("territory_id").model_type,
     }
 
 
@@ -156,6 +157,7 @@ def export_site(cfg, out_dir, with_geometry=True, results="outputs"):
                 "t": int(static[i]),
                 "tm": "".join(map(str, monthly[:, i])),
                 "ch": int(tid in changed),
+                "bd": int(R["boundary"][tid]) if tid in R["boundary"].index else None,
                 "sh": [round(float(v), 4) for v in mean_shares.iloc[i]],
                 "s": [int(v) for v in total.iloc[i]],
                 "ma": round(float(ma.get(tid, np.nan)), 1) if tid in ma.index else None,
