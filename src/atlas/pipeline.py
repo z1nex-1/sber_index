@@ -25,8 +25,18 @@ def _log(msg, t0):
     print(f"[{time.time() - t0:6.0f} с] {msg}", flush=True)
 
 
+def _finite(obj):
+    if isinstance(obj, dict):
+        return {k: _finite(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_finite(v) for v in obj]
+    if isinstance(obj, (float, np.floating)):
+        return float(obj) if np.isfinite(obj) else None
+    return obj
+
+
 def _json(obj, path):
-    Path(path).write_text(json.dumps(obj, ensure_ascii=False, indent=1, default=float), encoding="utf-8")
+    Path(path).write_text(json.dumps(_finite(obj), ensure_ascii=False, indent=1, allow_nan=False, default=float), encoding="utf-8")
 
 
 def run(cfg, out="outputs"):
@@ -52,7 +62,8 @@ def run(cfg, out="outputs"):
     fin = cfg["final"]
     final_key = f"{fin['method']}|{fin['rule']}|{fin['k']}"
     top = ranked[ranked.kemeny_rank <= 3].index.tolist()
-    keys = list(dict.fromkeys([final_key] + top))
+    # k-средних при том же k — привычная точка отсчёта для устойчивости
+    keys = list(dict.fromkeys([final_key, f"kmeans|-|{fin['k']}"] + top))
     cl = cfg["clustering"]
     stab = Parallel(n_jobs=-1)(delayed(bootstrap_stability)(ctx, k, labels[k], cl["bootstrap"], cl["bootstrap_frac"], cfg["seed"])
                                for k in keys)
