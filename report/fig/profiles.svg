@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="475.2pt" height="216pt" viewBox="0 0 475.2 216" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-27T06:45:21.732788</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.7, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 216 
+L 475.2 216 
+L 475.2 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 117.689615 170.199335 
+L 472.19976 170.199335 
+L 472.19976 3.00024 
+L 117.689615 3.00024 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g clip-path="url(#p7a0edee479)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAe0AAADpCAYAAAAJUm9ZAAAFI0lEQVR4nO3Xv46UVQCHYXZnFsE1S6F2xISCwngB3IBacBU0XIaScAEWtJZegqWdJQXEULiFYowaYAv+uQvDLux4Ae60nPMmz9NO88v5Zr53ztbq6eP1Of7n9MKeU9lg+ewvZ3OGH/654FzOcP3qx85lg+N3Xr9nn8up78wG25s+AADmItoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAELF1ePRqPXrEjB4+Px49YVp/Pn89esKUvv5kNXrCnB7eH71gXlevjV4wpfViZ/SEablpA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQIRoA0CEaANAhGgDQMTWwYvD9egRM/pox/+ZTQ5PTt/rs6j499bN0ROmdPmb70ZPmNfab+ksi5eP3vujqFAmAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIEG0AiBBtAIgQbQCIWJ68W4/eMKXfDo9HT5jWpQ8WoydM6eRoNXrClPZXF0dPmNYXr/dHT5jSr9/eHj1hWm7aABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQIdoAECHaABAh2gAQsXxwcDR6w5S+WvwxesK09rc/Hz1hSne+vzd6wpTu3Php9IRprXf3Rk+Y0pMHB6MnTMtNGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIkQbACJEGwAiRBsAIpYf7ixGb5jS273LoydM68ru+dETCFm/PRk9YVpblz4dPWFKq2dvRk+Ylps2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARIg2AESINgBEiDYARCx/f/pq9IYpXXt8d/SEae1/9uXoCYRsX9wdPWFab375efSEKf3498vRE6blpg0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINABGiDQARog0AEaINAOca/gP3QFkjm4d9HAAAAABJRU5ErkJggg==" id="imagee134a29044" transform="scale(1 -1) translate(0 -167.76)" x="117.689615" y="-2.439335" width="354.96" height="167.76"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(81.370584 201.830882) rotate(-20)">Продовольствие</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(157.809453 192.54418) rotate(-20)">Здоровье</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(189.443484 199.378782) rotate(-20)">Маркетплейсы</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4"/>
+     <g id="text_4">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(207.264474 211.308313) rotate(-20)">Общественное питание</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5"/>
+     <g id="text_5">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(307.070415 193.414942) rotate(-20)">Транспорт</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6"/>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(368.20037 189.598478) rotate(-20)">Прочее</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_7"/>
+     <g id="text_7">
+      <text style="font-size: 9px; font-family: 'PT Sans'; fill: #8a8374" transform="translate(385.802 201.625028) rotate(-20)">траты на жителя</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_8"/>
+     <g id="text_8">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="18.093033" transform="rotate(-0 114.189615 18.093033)">Центр Москвы</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_9"/>
+     <g id="text_9">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="41.978618" transform="rotate(-0 114.189615 41.978618)">Московская агломерация</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_10"/>
+     <g id="text_10">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="65.976703" transform="rotate(-0 114.189615 65.976703)">Петербургская агломерация</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_11"/>
+     <g id="text_11">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="89.803928" transform="rotate(-0 114.189615 89.803928)">Север</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_12"/>
+     <g id="text_12">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="113.635373" transform="rotate(-0 114.189615 113.635373)">Города</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_13"/>
+     <g id="text_13">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="137.530098" transform="rotate(-0 114.189615 137.530098)">Удалённые районы</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_14"/>
+     <g id="text_14">
+      <text style="font-size: 9px; font-family: 'PT Sans'; text-anchor: end; fill: #8a8374" x="114.189615" y="161.406543" transform="rotate(-0 114.189615 161.406543)">Малые города и село</text>
+     </g>
+    </g>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="16.818033" transform="rotate(-0 143.011768 16.818033)">−36%</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="16.818033" transform="rotate(-0 193.656075 16.818033)">+28%</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="16.818033" transform="rotate(-0 244.300381 16.818033)">−20%</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="294.944687" y="16.818033" transform="rotate(-0 294.944687 16.818033)">+234%</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="16.818033" transform="rotate(-0 345.588994 16.818033)">+26%</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="16.818033" transform="rotate(-0 396.2333 16.818033)">+36%</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="446.877607" y="16.818033" transform="rotate(-0 446.877607 16.818033)">+121%</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="40.703618" transform="rotate(-0 143.011768 40.703618)">−24%</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="40.703618" transform="rotate(-0 193.656075 40.703618)">+8%</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="40.703618" transform="rotate(-0 244.300381 40.703618)">−1%</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="294.944687" y="40.703618" transform="rotate(-0 294.944687 40.703618)">+161%</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="40.703618" transform="rotate(-0 345.588994 40.703618)">+29%</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="40.703618" transform="rotate(-0 396.2333 40.703618)">+17%</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="446.877607" y="40.703618" transform="rotate(-0 446.877607 40.703618)">+78%</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="64.589203" transform="rotate(-0 143.011768 64.589203)">−27%</text>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="64.589203" transform="rotate(-0 193.656075 64.589203)">+20%</text>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="64.589203" transform="rotate(-0 244.300381 64.589203)">−17%</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="294.944687" y="64.589203" transform="rotate(-0 294.944687 64.589203)">+204%</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="64.589203" transform="rotate(-0 345.588994 64.589203)">+28%</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="64.589203" transform="rotate(-0 396.2333 64.589203)">+24%</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="446.877607" y="64.589203" transform="rotate(-0 446.877607 64.589203)">+74%</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="88.474788" transform="rotate(-0 143.011768 88.474788)">−9%</text>
+   </g>
+   <g id="text_37">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="88.474788" transform="rotate(-0 193.656075 88.474788)">−19%</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="88.474788" transform="rotate(-0 244.300381 88.474788)">−12%</text>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="294.944687" y="88.474788" transform="rotate(-0 294.944687 88.474788)">+58%</text>
+   </g>
+   <g id="text_40">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="88.474788" transform="rotate(-0 345.588994 88.474788)">−20%</text>
+   </g>
+   <g id="text_41">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="88.474788" transform="rotate(-0 396.2333 88.474788)">+19%</text>
+   </g>
+   <g id="text_42">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #ffffff" x="446.877607" y="88.474788" transform="rotate(-0 446.877607 88.474788)">+61%</text>
+   </g>
+   <g id="text_43">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="112.360373" transform="rotate(-0 143.011768 112.360373)">−7%</text>
+   </g>
+   <g id="text_44">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="112.360373" transform="rotate(-0 193.656075 112.360373)">−1%</text>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="112.360373" transform="rotate(-0 244.300381 112.360373)">−7%</text>
+   </g>
+   <g id="text_46">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="294.944687" y="112.360373" transform="rotate(-0 294.944687 112.360373)">+55%</text>
+   </g>
+   <g id="text_47">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="112.360373" transform="rotate(-0 345.588994 112.360373)">+6%</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="112.360373" transform="rotate(-0 396.2333 112.360373)">+7%</text>
+   </g>
+   <g id="text_49">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="446.877607" y="112.360373" transform="rotate(-0 446.877607 112.360373)">+17%</text>
+   </g>
+   <g id="text_50">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="136.245958" transform="rotate(-0 143.011768 136.245958)">−1%</text>
+   </g>
+   <g id="text_51">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="136.245958" transform="rotate(-0 193.656075 136.245958)">−19%</text>
+   </g>
+   <g id="text_52">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="136.245958" transform="rotate(-0 244.300381 136.245958)">−29%</text>
+   </g>
+   <g id="text_53">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="294.944687" y="136.245958" transform="rotate(-0 294.944687 136.245958)">+9%</text>
+   </g>
+   <g id="text_54">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="136.245958" transform="rotate(-0 345.588994 136.245958)">+27%</text>
+   </g>
+   <g id="text_55">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="136.245958" transform="rotate(-0 396.2333 136.245958)">+8%</text>
+   </g>
+   <g id="text_56">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="446.877607" y="136.245958" transform="rotate(-0 446.877607 136.245958)">+5%</text>
+   </g>
+   <g id="text_57">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="143.011768" y="160.131543" transform="rotate(-0 143.011768 160.131543)">+6%</text>
+   </g>
+   <g id="text_58">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="193.656075" y="160.131543" transform="rotate(-0 193.656075 160.131543)">−0%</text>
+   </g>
+   <g id="text_59">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="244.300381" y="160.131543" transform="rotate(-0 244.300381 160.131543)">+12%</text>
+   </g>
+   <g id="text_60">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="294.944687" y="160.131543" transform="rotate(-0 294.944687 160.131543)">−36%</text>
+   </g>
+   <g id="text_61">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="345.588994" y="160.131543" transform="rotate(-0 345.588994 160.131543)">−8%</text>
+   </g>
+   <g id="text_62">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="396.2333" y="160.131543" transform="rotate(-0 396.2333 160.131543)">−12%</text>
+   </g>
+   <g id="text_63">
+    <text style="font-size: 7.5px; font-family: 'PT Sans'; text-anchor: middle; fill: #1d1b17" x="446.877607" y="160.131543" transform="rotate(-0 446.877607 160.131543)">−15%</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p7a0edee479">
+   <rect x="117.689615" y="3.00024" width="354.510145" height="167.199095"/>
+  </clipPath>
+ </defs>
+</svg>
