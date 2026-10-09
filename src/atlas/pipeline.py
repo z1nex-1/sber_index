@@ -62,7 +62,7 @@ def run(cfg, out="outputs"):
     fin = cfg["final"]
     final_key = f"{fin['method']}|{fin['rule']}|{fin['k']}"
     top = ranked[ranked.kemeny_rank <= 3].index.tolist()
-    # k-средних при том же k — привычная точка отсчёта для устойчивости
+    # k-средних при том же k как привычная точка отсчёта для устойчивости
     keys = list(dict.fromkeys([final_key, f"kmeans|-|{fin['k']}"] + top))
     cl = cfg["clustering"]
     stab = Parallel(n_jobs=-1)(delayed(bootstrap_stability)(ctx, k, labels[k], cl["bootstrap"], cl["bootstrap_frac"], cfg["seed"])

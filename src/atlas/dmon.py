@@ -1,8 +1,8 @@
-"""DMoN — Deep Modularity Networks (Tsitsulin, Palowitch, Perozzi, Müller, JMLR 2023).
+"""DMoN, Deep Modularity Networks (Tsitsulin, Palowitch, Perozzi, Müller, JMLR 2023).
 
-Кодировщик — двухслойная GCN по признакам и нормированной смежности, выход — мягкое
+Кодировщик: двухслойная GCN по признакам и нормированной смежности, на выходе мягкое
 назначение C (n x k). Потери: -Tr(C^T B C) / 2m (спектральная модулярность)
-плюс sqrt(k)/n * ||sum_i C_i|| - 1 — штраф за схлопывание в один кластер.
+плюс sqrt(k)/n * ||sum_i C_i|| - 1 как штраф за схлопывание в один кластер.
 """
 import numpy as np
 import scipy.sparse as sp

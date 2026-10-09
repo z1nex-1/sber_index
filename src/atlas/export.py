@@ -46,8 +46,8 @@ def _geometry(cfg, g, ids_with_data):
     d = load_dictionary(cfg)
     g = g.join(d[["region_code"]], on="territory_id")
 
-    # d3-geo reads rings as spherical polygons and expects clockwise exteriors;
-    # slivers are dropped because simplification can collapse and flip them.
+    # d3-geo считает кольца сферическими многоугольниками и ждёт внешний контур по часовой стрелке;
+    # узкие осколки выбрасываются: после упрощения они схлопываются и выворачиваются
     def clockwise(geom):
         parts = [geom] if isinstance(geom, Polygon) else list(getattr(geom, "geoms", []))
         parts = [orient(p, sign=-1.0) for p in parts if isinstance(p, Polygon) and p.area > 2e-5]

@@ -49,7 +49,7 @@ def rank_matrix(res, ax):
             if np.isfinite(M[i, j]):
                 ax.text(j, i, int(M[i, j]), ha="center", va="center", fontsize=8, color=PAPER if M[i, j] <= 5 else INK)
             else:
-                ax.text(j, i, "—", ha="center", va="center", fontsize=8, color=INK3)
+                ax.text(j, i, "н/д", ha="center", va="center", fontsize=8, color=INK3)
     ax.set_xticks(range(len(ks)), [f"k={k}" for k in ks])
     ax.set_yticks(range(len(methods)), [METHOD_NAMES[m] for m in methods])
     ax.grid(False)

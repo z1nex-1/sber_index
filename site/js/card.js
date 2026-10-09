@@ -33,7 +33,7 @@ function spending(r, other, meta) {
   const y = d3.scaleLinear().domain([0, d3.max(series.flatMap((s) => s.v)) * 1.1]).nice().range([h - m.b, m.t]);
   const svg = d3.create("svg").attr("viewBox", `0 0 ${w} ${h}`).attr("width", "100%");
   svg.append("g").attr("class", "axis").attr("transform", `translate(${m.l},0)`)
-    .call(d3.axisLeft(y).ticks(4).tickSize(-(w - m.l - m.r)).tickFormat((v) => `${v / 1000} тыс`))
+    .call(d3.axisLeft(y).ticks(4).tickSize(-(w - m.l - m.r)).tickFormat((v) => `${v / 1000}\u00a0тыс`))
     .call((g) => g.select(".domain").remove())
     .call((g) => g.selectAll(".tick line").attr("stroke", "#e0d8c6"));
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${h - m.b})`)
@@ -99,7 +99,7 @@ export function renderCard(container, { meta, byId, app }) {
       el("h3", {}, "Карточка муниципалитета"),
       el("p", { class: "empty" }, "Выберите территорию на карте или найдите её по названию. Например: ",
         ex.flatMap((x, i) => [i ? ", " : "", el("a", { href: "#", onclick: (e) => { e.preventDefault(); app.select(x.id, { fly: true }); } }, x.n)]), "."),
-      el("p", { class: "hint" }, "Клавиши: ← → — месяцы, / — поиск, Esc — сбросить выбор."),
+      el("p", { class: "hint" }, "Клавиши: ← и → листают месяцы, / открывает поиск, Esc сбрасывает выбор."),
     );
     return;
   }
@@ -121,7 +121,7 @@ export function renderCard(container, { meta, byId, app }) {
   );
 
   const head = el("div", {},
-    el("h3", { class: "card-title" }, other ? "Сравнение" : "Карточка муниципалитета", el("span", { class: "no" }, "№ " + String(r.id).padStart(4, "0"))),
+    el("h3", { class: "card-title" }, other ? "Сравнение" : "Карточка муниципалитета", el("span", { class: "no" }, "№\u00a0" + String(r.id).padStart(4, "0"))),
     el("h4", {}, r.n),
     el("div", { class: "sub" }, `${MO_KINDS[r.k] || ""}, ${r.r}`),
     el("div", { class: "typebadge" }, swatch(t, 26, "cb"), t.name),
@@ -134,7 +134,7 @@ export function renderCard(container, { meta, byId, app }) {
 
   const roseBox = el("div", { class: "rosebox" },
     rose(r.sh, meta.national.sh, cats, { size: 210, color: t.color, animate: true, compare: other ? other.sh : null }));
-  const legendNote = other ? el("p", { class: "sub", style: "margin:0;text-align:center" }, "Пунктирный контур — ", other.n) : null;
+  const legendNote = other ? el("p", { class: "sub", style: "margin:0;text-align:center" }, "Пунктирный контур: ", other.n) : null;
 
   const dev = cats.map((c, i) => ({ c, d: r.sh[i] / meta.national.sh[i] - 1 })).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 2);
   const why = el("p", { class: "sub", style: "margin:10px 0 0" }, "Сильнее всего от средней по России отличаются доли: ",
@@ -144,7 +144,7 @@ export function renderCard(container, { meta, byId, app }) {
     el("span", {}, "Расходы на жителя в 2024 году"), el("span", { class: "num" }, fmtRub(s24) + " в месяц"),
     el("span", {}, "К медиане по России"), el("span", { class: "num" }, fmtSigned(s24 / n24 - 1)),
     el("span", {}, "Месяцев в своём типе"), el("span", { class: "num" }, fmtPct(stay)),
-    el("span", {}, "Индекс доступности рынков"), el("span", { class: "num" }, r.ma === null ? "—" : String(r.ma).replace(".", ",")),
+    el("span", {}, "Индекс доступности рынков"), el("span", { class: "num" }, r.ma === null ? "н/д" : String(r.ma).replace(".", ",")),
     r.c ? el("span", {}, "Административный центр") : null, r.c ? el("span", {}, r.c) : null,
   );
 

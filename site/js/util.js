@@ -1,7 +1,7 @@
-const ru = d3.formatLocale({ decimal: ",", thousands: " ", grouping: [3], currency: ["", " ₽"] });
+const ru = d3.formatLocale({ decimal: ",", thousands: "\u00a0", grouping: [3], currency: ["", "\u00a0₽"] });
 
 export const fmtInt = ru.format(",d");
-export const fmtRub = (v) => ru.format(",d")(Math.round(v)) + " ₽";
+export const fmtRub = (v) => ru.format(",d")(Math.round(v)) + "\u00a0₽";
 export const fmtPct = ru.format(".0%");
 export const fmtPct1 = ru.format(".1%");
 export const fmtSigned = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + ru.format(".0%")(Math.abs(v));

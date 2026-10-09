@@ -12,7 +12,7 @@ QUANTILES = {"≥ q90": 0.9, "≥ q75": 0.75, "≥ q25": 0.25, "≤ q75": 0.75, 
 def formal_context(shares, level, rhythm_df):
     """Бинарный контекст «МО × признак» с порядковым шкалированием каждого числового признака:
     пороги по 10, 25, 75 и 90-му процентилям в обе стороны (интерпорядковая шкала). Признаки
-    вложены, поэтому понятия описывают и направление, и силу отклонения, а пара «≥ q25» и «≤ q75» —
+    вложены, поэтому понятия описывают и направление, и силу отклонения, а пара «≥ q25» и «≤ q75» задаёт
     середину распределения."""
     num = pd.concat([shares.rename(columns=lambda c: c.removeprefix("share:")), level.rename("траты на жителя"),
                      rhythm_df.rename(columns={"amplitude": "сезонность", "summer": "летний пик", "volatility": "волатильность"})], axis=1)
@@ -34,7 +34,7 @@ def intent(I, objs):
 
 def delta_stability(I, A, B):
     """Δ-мера устойчивости понятия (Buzmakov, Kuznetsov, Napoli, 2014): на сколько объектов
-    сократится объём при добавлении любого нового признака. Большое Δ — понятие не держится
+    сократится объём при добавлении любого нового признака. При большом Δ понятие не держится
     на нескольких случайных МО."""
     size = A.sum()
     drops = [size - (A & I[b].to_numpy()).sum() for b in I.columns if b not in B]
@@ -42,7 +42,7 @@ def delta_stability(I, A, B):
 
 
 def describe_types(I, labels, max_attrs=3, min_precision=0.5, min_extent=10):
-    """Для каждого типа — формальное понятие (B', B''), чей объём лучше всего совпадает с типом по F1."""
+    """Для каждого типа находится формальное понятие (B', B''), чей объём лучше всего совпадает с типом по F1."""
     rows = []
     for t in np.unique(labels):
         T = labels == t
@@ -91,7 +91,7 @@ def external_validation(labels, ext, info, market_access):
                     ("индекс доступности рынков, log", np.log(market_access))]:
         ok = v.notna().to_numpy()
         h, p = stats.kruskal(*[v[ok & (labels == c)] for c in np.unique(labels)])
-        rows.append({"variable": name, "measure": "η²", "value": eta_squared(v, labels), "test": "Краскел — Уоллис", "p": float(p)})
+        rows.append({"variable": name, "measure": "η²", "value": eta_squared(v, labels), "test": "Краскел-Уоллис", "p": float(p)})
     for name, v in [("Крайний Север", ext.north.astype(bool)), ("моногород", ext.mono.notna()),
                     ("вид МО", info.mo_type), ("регион", info.region_code)]:
         cv, p = cramers_v(labels, v.to_numpy())
@@ -104,7 +104,7 @@ def external_validation(labels, ext, info, market_access):
 def join_count(A, labels, B=200, seed=0):
     """Доля связей между МО одного типа в сети и её значение при случайной перестановке типов.
 
-    Аналог Moran's I для категориального признака: z > 0 — типы образуют пространственные группы.
+    Аналог Moran's I для категориального признака: при z > 0 типы образуют пространственные группы.
     """
     import scipy.sparse as sp
 
@@ -116,6 +116,6 @@ def join_count(A, labels, B=200, seed=0):
 
 
 def within_region(labels, regions):
-    """Сколько регионов содержат МО разных типов — типы не сводятся к регионам."""
+    """Сколько регионов содержат МО разных типов: типы не сводятся к регионам."""
     s = pd.Series(labels).groupby(np.asarray(regions)).nunique()
     return {"regions": int(len(s)), "multi_type": int((s > 1).sum()), "mean_types": float(s.mean())}

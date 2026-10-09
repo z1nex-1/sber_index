@@ -9,7 +9,7 @@ import { loadAll, reducedMotion } from "./util.js";
 const tipEl = document.getElementById("tip");
 const tipText = tipEl.querySelector(".tip-text");
 const tipArt = tipEl.querySelector(".tip-art");
-// на сенсорных экранах подсказка после касания не исчезает и закрывает карточку — там её нет
+// на сенсорных экранах подсказка после касания не исчезает и закрывает карточку, поэтому там её нет
 const noHover = window.matchMedia("(hover: none)").matches;
 const tip = {
   show(ev, html, art = null) {
@@ -26,8 +26,8 @@ const tip = {
   hide() { tipEl.classList.remove("on"); },
 };
 
-// d3-geo reads polygons on the sphere: a ring wound the "wrong" way covers
-// everything except the territory, so such rings are reversed.
+// d3-geo строит многоугольники на сфере: кольцо, обойдённое «не в ту сторону», закрывает
+// всё, кроме самой территории, поэтому такие кольца разворачиваются
 function rewind(f) {
   const g = f.geometry;
   const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;

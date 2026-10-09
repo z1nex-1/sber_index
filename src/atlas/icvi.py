@@ -1,9 +1,9 @@
 """Внутренние индексы качества кластеризации.
 
-SW, CH, S_Dbw считаются по признакам узлов, AVI, AVU, MQ — по взвешенному графу.
-S_Dbw — по Halkidi, Vazirgiannis (2001). AVI и AVU — средняя изолированность
+SW, CH, S_Dbw считаются по признакам узлов, AVI, AVU, MQ по взвешенному графу.
+S_Dbw по Halkidi, Vazirgiannis (2001). AVI и AVU: средняя изолированность
 кластеров и средняя связанность пар кластеров по Biswas, Biswas (2017,
-Expert Systems with Applications 70). MQ — модулярность Ньюмана.
+Expert Systems with Applications 70). MQ: модулярность Ньюмана.
 """
 
 import numpy as np

@@ -14,7 +14,7 @@ export const METHOD_NAMES = {
 
 const INDICES = [
   ["SW", "Силуэт", true],
-  ["CH", "Калински — Харабаш", true],
+  ["CH", "Калински-Харабаш", true],
   ["S_Dbw", "S_Dbw", false],
   ["AVI", "Изолированность AVI", true],
   ["AVU", "Связанность AVU", false],
@@ -92,12 +92,12 @@ export function createMethods({ root, meta, tip }) {
       el("div", { class: "kicker" }, g.key === meta.model.key ? "Итоговая модель" : "Кандидат"),
       el("h3", {}, `${METHOD_NAMES[g.method]}, k = ${g.k}`),
       el("p", { class: "mx-sub" }, g.rule === "-" ? "Только признаки, сеть не используется" : `Сеть: ${RULES[g.rule].name}`),
-      el("p", { class: "mx-ranks" }, ...Object.entries(AGG).map(([a, [col, name]]) => el("span", { class: a === agg ? "on" : "" }, `${name}: `, el("b", {}, g[col] ?? "—")))),
+      el("p", { class: "mx-ranks" }, ...Object.entries(AGG).map(([a, [col, name]]) => el("span", { class: a === agg ? "on" : "" }, `${name}: `, el("b", {}, g[col] ?? "н/д")))),
       el("div", { class: "mx-strips" }, INDICES.map(([key, name, hib]) => el("div", { class: "mx-strip" },
-        el("span", {}, name, el("small", {}, hib ? " больше — лучше" : " меньше — лучше")), el("b", {}, fmt(g[key], key)), strip(key, hib, g)))),
-      el("p", { class: "note" }, "Штрихи — все допустимые разбиения с тем же k, кружок — выбранное; справа лучшие значения. Графовые индексы усреднены по сетям, построенным из других данных, чем использовал метод."),
-      st ? el("p", { class: "mx-stab" }, "Устойчивость: ARI с исходным разбиением на подвыборках 80% — ", el("b", {}, st.ari_boot_mean.toFixed(2).replace(".", ",")),
-        ", при другом seed — ", el("b", {}, st.ari_seed_mean.toFixed(2).replace(".", ","))) : null,
+        el("span", {}, name, el("small", {}, hib ? ", чем больше, тем лучше" : ", чем меньше, тем лучше")), el("b", {}, fmt(g[key], key)), strip(key, hib, g)))),
+      el("p", { class: "note" }, "Штрихи показывают все допустимые разбиения с тем же k, кружок выбранное; справа лучшие значения. Графовые индексы усреднены по сетям, построенным из других данных, чем использовал метод."),
+      st ? el("p", { class: "mx-stab" }, "Устойчивость: ARI с исходным разбиением на подвыборках 80% равен ", el("b", {}, st.ari_boot_mean.toFixed(2).replace(".", ",")),
+        ", при другом seed ", el("b", {}, st.ari_seed_mean.toFixed(2).replace(".", ","))) : null,
     );
   }
 
@@ -144,10 +144,10 @@ export function renderWhy(node, meta) {
     el("h3", {}, "Почему эта модель"),
     el("ol", { class: "why" },
       el("li", {}, `Спектральная кластеризация на признаках и гибридной сети первая по правилу Кемени при ${wins.length} значениях k из ${ks.length}: ${wins.join(", ")}.`),
-      el("li", {}, `При k = ${fin.k} разбиение устойчиво: ARI на подвыборках ${f2(fin.stability.ari_boot_mean)}, при смене seed — ${f2(fin.stability.ari_seed_mean)}.`
-        + (kmeans ? ` У k-средних с тем же k — ${f2(kmeans.ari_boot_mean)} и ${f2(kmeans.ari_seed_mean)}.` : "")),
-      at(fin.k + 1) ? el("li", {}, `k = ${fin.k} — самое большое число типов, которое держится: при k = ${fin.k + 1} устойчивость падает до ${f2(at(fin.k + 1).ari_boot_mean)}. «Ядро» — половина страны — начинает делиться, но на разных подвыборках по-разному: различия внутри него плавные.`) : null,
-      abl["структура"] ? el("li", {}, `Без уровня трат разбиение почти другое (ARI ${f2(abl["структура"].ari_to_final)}), без ритма — близкое (ARI ${f2(abl["структура + уровень"].ari_to_final)}); отказ от сглаживания почти ничего не меняет (ARI ${f2(abl["без сглаживания"].ari_to_final)}).`) : null,
+      el("li", {}, `При k = ${fin.k} разбиение устойчиво: ARI на подвыборках ${f2(fin.stability.ari_boot_mean)}, при смене seed ${f2(fin.stability.ari_seed_mean)}.`
+        + (kmeans ? ` У k-средних с тем же k ${f2(kmeans.ari_boot_mean)} и ${f2(kmeans.ari_seed_mean)}.` : "")),
+      at(fin.k + 1) ? el("li", {}, `k = ${fin.k} - самое большое число типов, которое держится: при k = ${fin.k + 1} устойчивость падает до ${f2(at(fin.k + 1).ari_boot_mean)}. «Ядро» (половина страны) начинает делиться, но на разных подвыборках по-разному: различия внутри него плавные.`) : null,
+      abl["структура"] ? el("li", {}, `Без уровня трат разбиение почти другое (ARI ${f2(abl["структура"].ari_to_final)}), без ритма близкое (ARI ${f2(abl["структура + уровень"].ari_to_final)}); отказ от сглаживания почти ничего не меняет (ARI ${f2(abl["без сглаживания"].ari_to_final)}).`) : null,
       el("li", {}, "Индекс доступности рынков в модель не включён: он пригодился для независимой проверки, и сеть уже учитывает географию через дороги."),
     ),
   );

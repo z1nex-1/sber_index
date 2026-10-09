@@ -88,7 +88,7 @@ def lagged_corr(R, t, window, lag_max, min_len=6):
 def dtw_similarity(R, t, window, band, candidates):
     """DTW по ряду общих трат относительно страны, только для пар-кандидатов.
 
-    Полный DTW для 2 млн пар не нужен: кандидаты — ближайшие по корреляции,
+    Полный DTW для 2 млн пар не нужен: кандидатами берутся ближайшие по корреляции,
     DTW уточняет порядок с учётом сдвигов до band месяцев (Sakoe–Chiba).
     Сходство exp(-d / медиана d).
     """
@@ -127,7 +127,7 @@ def road_similarity(dist, scale_km):
 
 
 def build_graph(rule, snaps, t, cfg, R=None, road_S=None):
-    """Граф месяца t; при t=None — граф по профилю за весь период и по всему ряду."""
+    """Граф месяца t; при t=None граф по профилю за весь период и по всему ряду."""
     g = cfg["graph"]
     k = g["k"]
     static = t is None

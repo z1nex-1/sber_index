@@ -155,7 +155,7 @@ export function createSpace({ root, meta, records, projection, coast, app, tip }
     box.replaceChildren();
     mini.style.display = brushed ? "block" : "none";
     if (!brushed) {
-      box.append(el("p", { class: "sub" }, "Обведите рамкой группу точек — справа появится её состав и мини-карта. Выделение сохраняется при переключении режимов: выделите область на карте и посмотрите, куда её муниципалитеты попадут в пространстве сходства."));
+      box.append(el("p", { class: "sub" }, "Обведите рамкой группу точек, и справа появится её состав и мини-карта. Выделение сохраняется при переключении режимов: выделите область на карте и посмотрите, куда её муниципалитеты попадут в пространстве сходства."));
       return;
     }
     const sel = records.filter((r) => brushed.has(r.id));

@@ -31,7 +31,7 @@ def load_population(dict_path, bulletin=BULLETIN):
     p["okt8"] = p.code.str[:8]
     p["nkey"] = [(c[:2], " ".join(_norm(n))) for c, n in zip(p.code, p.name)]
     d = _dictionary(dict_path)
-    # часть районов в 2023–2024 стали муниципальными округами с новыми кодами — тогда ищем по названию в регионе
+    # часть районов в 2023–2024 стали муниципальными округами с новыми кодами, их ищем по названию в регионе
     by_code = p.drop_duplicates("okt8").set_index("okt8")[["pop", "urban"]]
     by_name = p.drop_duplicates("nkey").set_index("nkey")[["pop", "urban"]]
     keys = [(o[:2], " ".join(_norm(n))) for o, n in zip(d.okt8, d.municipal_district_name)]
@@ -56,7 +56,7 @@ def _region_rows(sheet, bulletin):
 
 
 def load_north(dict_path, bulletin=BULLETIN):
-    """Районы Крайнего Севера и приравненные местности (табл. 3 бюллетеня) — сопоставление по названию внутри региона."""
+    """Районы Крайнего Севера и приравненные местности (табл. 3 бюллетеня), сопоставление по названию внутри региона."""
     d = _dictionary(dict_path)
     by_name = {}
     for tid, r in d.iterrows():
